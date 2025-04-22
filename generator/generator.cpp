@@ -24,9 +24,9 @@ constexpr unsigned int cards[] = {RA, RK, RQ, RJ, RT, R9, R8, R7, R6, R5, R4, R3
 constexpr int CARDS_IN_DECK = 52;
 constexpr int HAND_SIZE = 13;
 constexpr int HANDS = 4;
-constexpr int TEST_SIZE = 40; // 40
-constexpr int TEST_COUNT = 3; // 3
-constexpr int BATCH_SIZE = 32; // 32
+constexpr int TEST_SIZE = 32; // 32
+constexpr int TEST_COUNT = 2; // 2
+constexpr int BATCH_SIZE = 64; // 64
 constexpr int N = 0, S = 2, E = 1, W = 3;
 constexpr int SPADES = 0, HEARTS = 1, DIAMONDS = 2, CLUBS = 3, NOTRUMP = 4;
 constexpr int SUITS = 5;
