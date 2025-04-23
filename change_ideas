@@ -1,0 +1,12 @@
+Changing lambdas
+
+Tournament size 5 -> 3
+
+Change population size 200 -> 100/300
+ - Larger (200→300+): more genetic material, better exploration, but slower generations.
+ - Smaller (200→100): faster iterations, but risk “genetic drift” and missing rare good structures.
+ - Since 200 is in a comfortable middle ground, only change it if you’re hitting computational limits (too slow) or your diversity curves collapse (too fast).
+
+Hidden layers [256] -> [256, 128]/[128]:
+ - Search complexity: every additional layer means more weights for mutation/crossover to tune.
+ - Bloat vs. benefit: deeper nets may overfit or bloat if you don’t counterbalance with adequate regularization or parsimony.

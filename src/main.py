@@ -11,10 +11,6 @@ def core():
         print(f"Version {g.VERSION} already exists, change version in run_config.yaml "
               f"(for ex. [ {g.VERSION} -> {next_version(g.VERSION)} ])")
         return
-    # preparing archives
-    create_version_directory()
-    save_config()
-    add_version_to_changelog()
 
     evolved_population = run_evolution()
     save_population(evolved_population)

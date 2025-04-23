@@ -1,41 +1,53 @@
+import random
+
 import numpy as np
 
 from src.enviroment.batch import BatchDistributor, batch_from_file, Batch
 from src.enviroment.evaluation import evaluation_fitness_all
 from src.evolution.evolution_agent import EvoAgent
 from src.evolution.neural_net import NeuralNet
-from src.utils.saving_files import save_population, save_stats
+from src.utils.saving_files import save_population, save_stats, create_version_directory, save_config, \
+    add_version_to_changelog
 from src.runnable.show_model_bidding import print_model_bidding
 from src.utils.utils_functions import inclusive_range
 import src.utils.globals as g
 
 
-def evolve(population: list[EvoAgent], batch: Batch, retain_top=g.ELITISM_PROB,
+def evolve(population: list[EvoAgent], batch: Batch, elitism=g.ELITISM_PROB, tournament_size=g.TOURNAMENT_SIZE,
            mutate_prob=g.MUTATION_PROB, crossover_prob=g.CROSSOVER_PROB):
     # 1. Evaluate all agents
     fitness_scores = evaluation_fitness_all(population, batch)
 
     # 2. Sort and keep top performers
     fitness_scores.sort(key=lambda x: x[0], reverse=True)
-    survivors = [agent for _, agent in fitness_scores[:int(retain_top * len(population))]]
+    elite = [agent for _, agent in fitness_scores[:int(elitism * len(population))]]
 
     # 3. Reproduce
-    children = []
-    while len(survivors) + len(children) < len(population):
-        parent1 = np.random.choice(survivors)
-        if np.random.random() < crossover_prob:
-            parent2 = np.random.choice(survivors)
-            child_model = parent1.model.crossover(parent2.model)
-            child = EvoAgent(child_model)
-        else:
-            child = parent1.clone_and_mutate()
+    offspring = []
+    while len(elite) + len(offspring) < len(population):
+        parents = []
+        # Selecting two parents
+        for i in range(2):
+            contenders = random.sample(fitness_scores, tournament_size)
+            parents.append(max(contenders, key=lambda x: x[0])[1])
 
-        if np.random.random() < mutate_prob:
-            child = child.clone_and_mutate()
+        # get children
+        for i in range(2):
+            if np.random.random() < crossover_prob:
+                child_model = parents[0].model.crossover(parents[1].model)
+                child = EvoAgent(child_model)
+            else:
+                child = EvoAgent(parents[i].model.clone())
 
-        children.append(child)
+            if np.random.random() < mutate_prob:
+                child = child.clone_and_mutate()
 
-    return survivors + children
+            offspring.append(child)
+
+    evolved_population = elite + offspring
+    while len(evolved_population) > len(population):
+        evolved_population.pop()
+    return evolved_population
 
 
 def run_evolution(population_size=g.POPULATION_SIZE, generations=g.GENERATIONS, batch_distributor=BatchDistributor()):
@@ -46,6 +58,12 @@ def run_evolution(population_size=g.POPULATION_SIZE, generations=g.GENERATIONS, 
         batch = batch_distributor.get_random_batch()
         # Evolve population
         population = evolve(population, batch)
+
+        if generation == 1:
+            # preparing archives
+            create_version_directory()
+            save_config()
+            add_version_to_changelog()
 
         if generation % g.EVAL_INTERVAL == 0:
             # Evaluate fitness for stats

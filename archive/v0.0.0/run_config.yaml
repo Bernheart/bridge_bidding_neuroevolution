@@ -78,13 +78,15 @@ data:
   files:
     population: "population.pkl"
     statistics: "evolution_stats.csv"
+    changelog: "CHANGELOG.md"
 #    configuration: "run_config.yaml"
 
 
 # =============================================================================
 # Advanced / optional
 # =============================================================================
-#advanced:
+advanced:
+  overwrite_version: false
 #  use_behavioral_diversity: true
 #  diversity_weight: 0.1      # weight given to novelty in fitness
 #  archive_size: 50           # for MAP-Elites or novelty archives

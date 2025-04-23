@@ -13,9 +13,9 @@ def save_population(population):
         pickle.dump(population, f)
 
 
-def load_population():
+def load_population(file_path=g.POPULATION_FILE_PATH):
     # Load population
-    with open(g.POPULATION_FILE_PATH, "rb") as f:
+    with open(file_path, "rb") as f:
         population = pickle.load(f)
     return population
 
@@ -55,4 +55,4 @@ def add_version_to_changelog():
         if not last_empty:
             f.write('\n')
         f.write(f'## {g.VERSION} ({formatted_date})\n')
-        f.write(f'- {description}\n')
+        f.write(f'- {description}')

@@ -1,14 +1,17 @@
 import matplotlib.pyplot as plt
 import csv
+import src.utils.globals as g
 
 import matplotlib
+
 matplotlib.use('TkAgg')
 
 
-def plot_stats(filename="evolution_stats.csv"):
+def plot_stats(file_path=g.STATS_FILE_PATH):
+
     generations, best, avg, worst = [], [], [], []
 
-    with open(filename, "r") as f:
+    with open(file_path, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
             generations.append(int(row["Generation"]))
@@ -28,4 +31,4 @@ def plot_stats(filename="evolution_stats.csv"):
 
 
 if __name__ == "__main__":
-    plot_stats()
+    plot_stats()  # to change version -> change env VERSION

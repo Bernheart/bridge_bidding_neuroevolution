@@ -2,8 +2,20 @@
 # General experiment settings
 # =============================================================================
 name: "evo_bridge_bidding"
-version: 0.0.1
-description: "Test for new code refactoring"
+version: 1.0.0
+description: |
+  New hope! Changing selection method and selecting from whole population not only elites
+  - Variables changes:
+    • selection method round-robin->tournament
+    • [new] tournament size [ 5 ]
+    • generations  [ 400->800 ]
+    • crossover  [ 0.3->0.9 ]
+    • mutation  [ 0.95->0.9 ]
+    • mutation rate  [ 0.3->0.5 ]
+    • elitism  [ 0.15->0.025 ]
+    • suit reward  [ 1.5->1.0 ]
+    • length reward  [ 0.2->0.3 ]
+    • diversity reward  [ 0.3->0.4 ]
 #seed: 1234
 #use_gpu: false                # evolution typically CPU-bound, set true if fitness eval is heavy
 results_dir: "./archive/v{version}/"
@@ -13,21 +25,21 @@ results_dir: "./archive/v{version}/"
 # =============================================================================
 evolution:
   population_size: 200       # number of NN agents per generation
-  generations: 400           # total number of generations to run
+  generations: 800           # total number of generations to run
   selection:
-    method: "round-robin"     # options: tournament, roulette, rank
-#    tournament_size: 5
+    method: "tournament"     # options: tournament, roulette, rank
+    tournament_size: 5
   crossover:
 #    enabled: true
-    probability: 0.35        # chance two parents will crossover
+    probability: 0.9        # chance two parents will crossover
     type: "uniform"          # options: single_point, two_point, uniform
   mutation:
 #    enabled: true
-    probability: 0.95        # chance child will mutate
-    rate: 0.3                # per-gene mutation rate
+    probability: 0.9        # chance child will mutate
+    rate: 0.5                # per-gene mutation rate
     perturbation_scale: 0.8  # std dev of gaussian noise added to weights
   elitism:
-    keep_best: 0.15          # percentage of top agents carried to next gen
+    keep_best: 0.025          # percentage of top agents carried to next gen
 
 # =============================================================================
 # Neural network architecture & encoding
@@ -48,9 +60,9 @@ simulation:
   opponents: "all"           # can be random, heuristic, or fixed-bot
   scoring:                   # how fitness is computed
     imp_difference: 1.0
-    good_suit_reward: 1.5
-    bidding_length_bonus: 0.1
-    diversity_bonus: 0.2
+    good_suit_reward: 1.0
+    bidding_length_bonus: 0.3
+    diversity_bonus: 0.4
 
 # =============================================================================
 # Parallelization & performance
@@ -74,7 +86,7 @@ data:
   batch:
     size: 64
     first: 1
-    last: -1
+    last: 800
   files:
     population: "population.pkl"
     statistics: "evolution_stats.csv"

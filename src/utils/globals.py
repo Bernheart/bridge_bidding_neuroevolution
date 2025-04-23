@@ -1,3 +1,5 @@
+import os
+
 import yaml
 
 SUITS = 5
@@ -10,10 +12,14 @@ CARD_IN_DECK = 52
 HAND_MASK_SIZE = CARD_IN_DECK + 1  # +vul
 
 CONFIG_FILE_PATH = "run_config.yaml"
+ARCHIVE_DIR_PATH = "./archive/"
 
 
 def config():
-    with open(CONFIG_FILE_PATH) as f:
+    file_path = CONFIG_FILE_PATH
+    if "VERSION" in os.environ:
+        file_path = f'{ARCHIVE_DIR_PATH}v{os.environ["VERSION"]}/{file_path}'
+    with open(file_path) as f:
         _cfg = yaml.safe_load(f)
     return _cfg
 
@@ -33,6 +39,7 @@ MUTATION_RATE = cfg['evolution']['mutation']['rate']
 MUTATION_SCALE = cfg['evolution']['mutation']['perturbation_scale']
 
 ELITISM_PROB = cfg['evolution']['elitism']['keep_best']
+TOURNAMENT_SIZE = cfg['evolution']['selection']['tournament_size']
 
 INPUT_SIZE = cfg['neural_network']['input_size']
 OUTPUT_SIZE = cfg['neural_network']['output_size']
