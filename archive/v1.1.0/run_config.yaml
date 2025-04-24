@@ -1,0 +1,103 @@
+# =============================================================================
+# General experiment settings
+# =============================================================================
+name: "evo_bridge_bidding"
+version: 1.1.0
+description: |
+  Softening mutation by a lot to not have random weights, higher elitism for better preservation,
+    lower tournament size so it won't converge to early
+  - Variables changes:
+    • tournament size [ 5->3 ]
+    • crossover  [ 0.9->0.7 ]
+    • mutation  [ 0.9->0.3 ]
+    • mutation rate  [ 0.5->0.1 ]
+    • perturbation scale  [ 0.8->0.2 ]
+    • elitism  [ 0.025->0.075 ]
+    • suit reward  [ 1.0->1.2 ]
+    • length reward  [ 0.3->0.4 ]
+#seed: 1234
+#use_gpu: false                # evolution typically CPU-bound, set true if fitness eval is heavy
+results_dir: "./archive/v{version}/"
+
+# =============================================================================
+# Evolutionary algorithm parameters
+# =============================================================================
+evolution:
+  population_size: 200       # number of NN agents per generation
+  generations: 800           # total number of generations to run
+  selection:
+    method: "tournament"     # options: tournament, roulette, rank
+    tournament_size: 3
+  crossover:
+#    enabled: true
+    probability: 0.7        # chance two parents will crossover
+    type: "uniform"          # options: single_point, two_point, uniform
+  mutation:
+#    enabled: true
+    probability: 0.3        # chance child will mutate
+    rate: 0.1                # per-gene mutation rate
+    perturbation_scale: 0.2  # std dev of gaussian noise added to weights
+  elitism:
+    keep_best: 0.075          # percentage of top agents carried to next gen
+
+# =============================================================================
+# Neural network architecture & encoding
+# =============================================================================
+neural_network:
+  input_size: 90             # one‐hot for cards in hand + bidding history encoding
+  hidden_layers: [256]       # one hidden layer with 256 neurons
+  output_size: 37            # number of possible bids (including pass)
+  activation: "tanh"         # hidden layers activation
+  output_activation: "softmax"
+#  weight_init: "xavier"      # weight initialization scheme
+
+# =============================================================================
+# Bridge simulation / fitness evaluation
+# =============================================================================
+simulation:
+#  deals_per_agent: 64        # how many hands each agent plays per evaluation
+  opponents: "all"           # can be random, heuristic, or fixed-bot
+  scoring:                   # how fitness is computed
+    imp_difference: 1.0
+    good_suit_reward: 1.2
+    bidding_length_bonus: 0.4
+    diversity_bonus: 0.4
+
+# =============================================================================
+# Parallelization & performance
+# =============================================================================
+#parallel:
+#  enabled: true
+#  num_workers: 8            # number of CPU processes for fitness eval
+
+# =============================================================================
+# Logging & checkpoints
+# =============================================================================
+logging:
+#  log_interval: 1            # log summary every n generations
+  eval_interval: 1           # run detailed evaluation/play-off every n generations
+  save_interval: 50          # checkpoint population/network weights every n generations
+
+# =============================================================================
+# Data & Batches
+# =============================================================================
+data:
+  batch:
+    size: 64
+    first: 1
+    last: 800
+  files:
+    population: "population.pkl"
+    statistics: "evolution_stats.csv"
+    changelog: "CHANGELOG.md"
+#    configuration: "run_config.yaml"
+
+
+# =============================================================================
+# Advanced / optional
+# =============================================================================
+advanced:
+  overwrite_version: false    # be very careful with this one
+#  use_behavioral_diversity: true
+#  diversity_weight: 0.1      # weight given to novelty in fitness
+#  archive_size: 50           # for MAP-Elites or novelty archives

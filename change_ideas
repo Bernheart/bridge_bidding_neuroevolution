@@ -10,3 +10,5 @@ Change population size 200 -> 100/300
 Hidden layers [256] -> [256, 128]/[128]:
  - Search complexity: every additional layer means more weights for mutation/crossover to tune.
  - Bloat vs. benefit: deeper nets may overfit or bloat if you don’t counterbalance with adequate regularization or parsimony.
+
+ Add suits and points to output

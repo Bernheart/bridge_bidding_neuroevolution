@@ -69,6 +69,8 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
         imp_score -= imps  # subtracting diff between best score and score
         if last_bid_idx != 0:
             best_suit_rewards += batch.get_rewards_for_suit(deal_index)[suit_id]
+        else:
+            best_suit_rewards += batch.get_rewards_for_suit(deal_index)[g.SUITS]  # 5 index for pas
 
         if for_show:
             bidding_masks.append(bidding_mask)

@@ -2,20 +2,16 @@
 # General experiment settings
 # =============================================================================
 name: "evo_bridge_bidding"
-version: 1.0.0
+version: 1.1.1
 description: |
-  New hope! Changing selection method and selecting from whole population not only elites
+  Getting more complexity by more generations and more hidden layers
+  - Fixed best color reward to give based on best contract in the color not for avg
   - Variables changes:
-    • selection method round-robin->tournament
-    • [new] tournament size [ 5 ]
-    • generations  [ 400->800 ]
-    • crossover  [ 0.3->0.9 ]
-    • mutation  [ 0.95->0.9 ]
-    • mutation rate  [ 0.3->0.5 ]
-    • elitism  [ 0.15->0.025 ]
-    • suit reward  [ 1.5->1.0 ]
-    • length reward  [ 0.2->0.3 ]
-    • diversity reward  [ 0.3->0.4 ]
+    • population size  [ 800->1000 ]
+    • generations  [ 200->300 ]
+    • elitism  [ 0.075->0.07 ]
+    • length reward  [ 0.4->0.5 ]
+    • hidden layers  [ [256]->[256, 128] ]
 #seed: 1234
 #use_gpu: false                # evolution typically CPU-bound, set true if fitness eval is heavy
 results_dir: "./archive/v{version}/"
@@ -24,31 +20,31 @@ results_dir: "./archive/v{version}/"
 # Evolutionary algorithm parameters
 # =============================================================================
 evolution:
-  population_size: 200       # number of NN agents per generation
-  generations: 800           # total number of generations to run
+  population_size: 300       # number of NN agents per generation
+  generations: 1000          # total number of generations to run
   selection:
     method: "tournament"     # options: tournament, roulette, rank
-    tournament_size: 5
+    tournament_size: 3
   crossover:
 #    enabled: true
-    probability: 0.9        # chance two parents will crossover
+    probability: 0.7         # chance two parents will crossover
     type: "uniform"          # options: single_point, two_point, uniform
   mutation:
 #    enabled: true
-    probability: 0.9        # chance child will mutate
-    rate: 0.5                # per-gene mutation rate
-    perturbation_scale: 0.8  # std dev of gaussian noise added to weights
+    probability: 0.3         # chance child will mutate
+    rate: 0.1                # per-gene mutation rate
+    perturbation_scale: 0.2  # std dev of gaussian noise added to weights
   elitism:
-    keep_best: 0.025          # percentage of top agents carried to next gen
+    keep_best: 0.07          # percentage of top agents carried to next gen
 
 # =============================================================================
 # Neural network architecture & encoding
 # =============================================================================
 neural_network:
   input_size: 90             # one‐hot for cards in hand + bidding history encoding
-  hidden_layers: [256]       # two hidden layers of 64 neurons each
+  hidden_layers: [256, 128]       # one hidden layer with 256 neurons
   output_size: 37            # number of possible bids (including pass)
-  activation: "tahn"         # hidden layers activation
+  activation: "tanh"         # hidden layers activation
   output_activation: "softmax"
 #  weight_init: "xavier"      # weight initialization scheme
 
@@ -60,8 +56,8 @@ simulation:
   opponents: "all"           # can be random, heuristic, or fixed-bot
   scoring:                   # how fitness is computed
     imp_difference: 1.0
-    good_suit_reward: 1.0
-    bidding_length_bonus: 0.3
+    good_suit_reward: 1.2
+    bidding_length_bonus: 0.5
     diversity_bonus: 0.4
 
 # =============================================================================

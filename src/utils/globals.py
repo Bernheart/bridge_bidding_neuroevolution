@@ -43,7 +43,8 @@ TOURNAMENT_SIZE = cfg['evolution']['selection']['tournament_size']
 
 INPUT_SIZE = cfg['neural_network']['input_size']
 OUTPUT_SIZE = cfg['neural_network']['output_size']
-HIDDEN_SIZE = cfg['neural_network']['hidden_layers'][0]
+HIDDEN_LAYERS = cfg['neural_network']['hidden_layers']
+print(HIDDEN_LAYERS)
 
 IMPS_LAMBDA = cfg['simulation']['scoring']['imp_difference']
 SUIT_LAMBDA = cfg['simulation']['scoring']['good_suit_reward']

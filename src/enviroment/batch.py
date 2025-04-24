@@ -1,6 +1,8 @@
 import csv
 from random import randrange
 
+import numpy as np
+
 import src.utils.globals as g
 from src.utils.utils_functions import inclusive_range
 
@@ -43,11 +45,13 @@ class Batch:
 
         suits = []
         for suit in range(g.SUITS):
-            suits.append(0)
+            suits.append(-np.inf)
             for level in range(g.LEVELS):
                 for direction_table in self.dd_tables[deal_number]:
                     contract_id = 1 + suit * g.LEVELS + level
-                    suits[suit] += direction_table[contract_id]
+                    if direction_table[contract_id] > suits[suit]:
+                        suits[suit] = direction_table[contract_id]
+        suits.append(0)  # 0 for playing pas
         return normalize(suits)
 
 
