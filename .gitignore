@@ -181,3 +181,6 @@ cython_debug/
 
 # Data
 /generator/data
+
+*.csv
+*.json.gz
