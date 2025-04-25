@@ -1,23 +1,47 @@
 import csv
+import gzip
+import json
 import os
 import pickle
 from datetime import date
 
+import orjson
+
+from src.evolution.evolution_agent import EvoAgent
+from src.evolution.neural_net import NeuralNet
 from src.utils import globals as g
 import shutil
 
 
-def save_population(population):
-    # Save population
-    with open(g.POPULATION_FILE_PATH, "wb") as f:
-        pickle.dump(population, f)
+# def save_population(population):
+#     # Save population
+#     with open(g.POPULATION_FILE_PATH, "wb") as f:
+#         pickle.dump(population, f)
 
 
-def load_population(file_path=g.POPULATION_FILE_PATH):
-    # Load population
-    with open(file_path, "rb") as f:
-        population = pickle.load(f)
+def save_population(population: list[EvoAgent]):
+    data = [agent.model.get_parameters() for agent in population]
+    with gzip.open(g.JSON_POPULATION_FILE_PATH, "wb") as f:
+        f.write(orjson.dumps(data))
+
+
+def load_population():
+    with gzip.open(g.JSON_POPULATION_FILE_PATH, 'rb') as f:
+        loaded_params = orjson.loads(f.read())
+
+    population = []
+    for params in loaded_params:
+        agent = EvoAgent(NeuralNet())
+        agent.model.set_parameters(params)
+        population.append(agent)
     return population
+
+
+# def load_population(file_path=g.POPULATION_FILE_PATH):
+#     # Load population
+#     with open(file_path, "rb") as f:
+#         population = pickle.load(f)
+#     return population
 
 
 def create_version_directory():

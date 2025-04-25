@@ -31,6 +31,11 @@ class Batch:
     def __init__(self, hands: list[tuple[list, list]], dd_tables: list[tuple[list, list]]):
         self.hands = hands
         self.dd_tables = dd_tables
+        self.colors: list[tuple[list, list]] = []
+        self.points: list[list[int]] = []
+        self.prepare_colors()
+        self.suit_rewards: list[list[float]] = \
+            [self.get_rewards_for_suit(deal_number) for deal_number in range(len(self))]
 
     def __len__(self):
         return len(self.hands)
@@ -54,11 +59,30 @@ class Batch:
         suits.append(0)  # 0 for playing pas
         return normalize(suits)
 
+    def prepare_colors(self):
+        for hands in self.hands:
+            self.colors.append(([0, 0, 0, 0], [0, 0, 0, 0]))
+            self.points.append([0, 0])
+            for idx in range(len(hands)):
+                for color in range(g.COLORS):
+                    for card in range(g.CARDS_IN_HAND):
+                        if hands[idx][color * g.CARDS_IN_HAND + card] == 1:
+                            self.colors[-1][idx][color] += 1
+                            self.points[-1][idx] += max(0, card - 8)
+                for color in range(g.COLORS):
+                    self.colors[-1][idx][color] /= g.CARDS_IN_HAND
+                # print(hands[idx])
+                # print(self.points[-1][idx])
+                self.points[-1][idx] /= 40
+
 
 class BatchDistributor:
     def __init__(self):
         self.first_batch = g.FIRST_BATCH
-        self.last_batch = g.LAST_BATCH
+        if g.LAST_BATCH == -1:
+            self.last_batch = self.first_batch + (g.GENERATIONS - 1)
+        else:
+            self.last_batch = g.LAST_BATCH
         self.batches = None
         self.get_batch_numbers()
 
@@ -66,9 +90,9 @@ class BatchDistributor:
         return len(self.batches)
 
     def get_batch_numbers(self):
-        if self.last_batch == -1:
-            with open(g.NO_BATCHES_FILE_PATH, 'r') as file:
-                self.last_batch = int(file.read().strip())
+        # if self.last_batch == -1:
+        #     with open(g.NO_BATCHES_FILE_PATH, 'r') as file:
+        #         self.last_batch = int(file.read().strip())
         self.batches = [i for i in inclusive_range(self.first_batch, self.last_batch)]
 
     def get_random_batch(self) -> Batch:

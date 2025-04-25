@@ -1,0 +1,92 @@
+# =============================================================================
+# General experiment settings
+# =============================================================================
+name: "evo_bridge_bidding"
+version: 0.0.1
+description: "Test for new code refactoring"
+#seed: 1234
+#use_gpu: false                # evolution typically CPU-bound, set true if fitness eval is heavy
+results_dir: "./archive/v{version}/"
+
+# =============================================================================
+# Evolutionary algorithm parameters
+# =============================================================================
+evolution:
+  population_size: 200       # number of NN agents per generation
+  generations: 400           # total number of generations to run
+  selection:
+    method: "round-robin"     # options: tournament, roulette, rank
+#    tournament_size: 5
+  crossover:
+#    enabled: true
+    probability: 0.35        # chance two parents will crossover
+    type: "uniform"          # options: single_point, two_point, uniform
+  mutation:
+#    enabled: true
+    probability: 0.95        # chance child will mutate
+    rate: 0.3                # per-gene mutation rate
+    perturbation_scale: 0.8  # std dev of gaussian noise added to weights
+  elitism:
+    keep_best: 0.15          # percentage of top agents carried to next gen
+
+# =============================================================================
+# Neural network architecture & encoding
+# =============================================================================
+neural_network:
+  input_size: 90             # one‐hot for cards in hand + bidding history encoding
+  hidden_layers: [256]       # two hidden layers of 64 neurons each
+  output_size: 37            # number of possible bids (including pass)
+  activation: "tahn"         # hidden layers activation
+  output_activation: "softmax"
+#  weight_init: "xavier"      # weight initialization scheme
+
+# =============================================================================
+# Bridge simulation / fitness evaluation
+# =============================================================================
+simulation:
+#  deals_per_agent: 64        # how many hands each agent plays per evaluation
+  opponents: "all"           # can be random, heuristic, or fixed-bot
+  scoring:                   # how fitness is computed
+    imp_difference: 1.0
+    good_suit_reward: 1.5
+    bidding_length_bonus: 0.1
+    diversity_bonus: 0.2
+
+# =============================================================================
+# Parallelization & performance
+# =============================================================================
+#parallel:
+#  enabled: true
+#  num_workers: 8            # number of CPU processes for fitness eval
+
+# =============================================================================
+# Logging & checkpoints
+# =============================================================================
+logging:
+#  log_interval: 1            # log summary every n generations
+  eval_interval: 1           # run detailed evaluation/play-off every n generations
+  save_interval: 50          # checkpoint population/network weights every n generations
+
+# =============================================================================
+# Data & Batches
+# =============================================================================
+data:
+  batch:
+    size: 64
+    first: 1
+    last: -1
+  files:
+    population: "population.pkl"
+    statistics: "evolution_stats.csv"
+    changelog: "CHANGELOG.md"
+#    configuration: "run_config.yaml"
+
+
+# =============================================================================
+# Advanced / optional
+# =============================================================================
+advanced:
+  overwrite_version: false    # be very careful with this one
+#  use_behavioral_diversity: true
+#  diversity_weight: 0.1      # weight given to novelty in fitness
+#  archive_size: 50           # for MAP-Elites or novelty archives

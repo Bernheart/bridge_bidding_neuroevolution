@@ -1,3 +1,6 @@
+import os
+import numpy as np
+
 import matplotlib.pyplot as plt
 import csv
 import src.utils.globals as g
@@ -8,6 +11,12 @@ import matplotlib
 matplotlib.use('TkAgg')
 
 
+def moving_average(data, window_size=5):
+    if len(data) < window_size:
+        return data
+    return np.convolve(data, np.ones(window_size) / window_size, mode='valid')
+
+
 def plot_stats(file_path=g.STATS_FILE_PATH):
     # turn on interactive mode
     plt.ion()
@@ -16,7 +25,8 @@ def plot_stats(file_path=g.STATS_FILE_PATH):
     fig1, ax1 = plt.subplots()
     fig2, ax2 = plt.subplots()
 
-    while True:
+    flag = True
+    while flag:
         # storage lists
         generations = []
         best_score, avg_score, worst_score = [], [], []
@@ -35,25 +45,30 @@ def plot_stats(file_path=g.STATS_FILE_PATH):
                 avg_length.append(float(row["Average_Length"]))
                 worst_length.append(float(row["Worst_Length"]))
 
+        cut = 0
+        window = 1  # You can adjust this
+
         # ---- Figure 1: Fitness ----
         ax1.clear()
-        ax1.plot(generations, best_score,  label="Best Score")
-        ax1.plot(generations, avg_score,   label="Average Score")
-        ax1.plot(generations, worst_score, label="Worst Score")
+
+        smoothed_gen = generations[cut + window - 1:]
+        ax1.plot(smoothed_gen, moving_average(best_score[cut:], window), label="Best Score (smoothed)")
+        ax1.plot(smoothed_gen, moving_average(avg_score[cut:], window), label="Average Score (smoothed)")
+        ax1.plot(smoothed_gen, moving_average(worst_score[cut:], window), label="Worst Score (smoothed)")
         ax1.set_xlabel("Generation")
         ax1.set_ylabel("Fitness")
-        ax1.set_title("Evolution Fitness Over Generations")
+        ax1.set_title(f"Evolution Fitness Over Generations [{g.VERSION}]")
         ax1.legend()
         ax1.grid(True)
 
         # ---- Figure 2: Length ----
         ax2.clear()
-        ax2.plot(generations, best_length,  label="Best Length")
-        ax2.plot(generations, avg_length,   label="Average Length")
-        ax2.plot(generations, worst_length, label="Worst Length")
+        ax2.plot(smoothed_gen, moving_average(best_length[cut:], window), label="Best Length (smoothed)")
+        ax2.plot(smoothed_gen, moving_average(avg_length[cut:], window), label="Average Length (smoothed)")
+        ax2.plot(smoothed_gen, moving_average(worst_length[cut:], window), label="Worst Length (smoothed)")
         ax2.set_xlabel("Generation")
         ax2.set_ylabel("Length")
-        ax2.set_title("Evolution Bid Length Over Generations")
+        ax2.set_title(f"Evolution Bid Length Over Generations [{g.VERSION}]")
         ax2.legend()
         ax2.grid(True)
 
@@ -61,8 +76,13 @@ def plot_stats(file_path=g.STATS_FILE_PATH):
         fig1.canvas.draw()
         fig2.canvas.draw()
 
-        # Draw and pause _within_ Matplotlib’s event loop
-        plt.pause(60.0)   # updates figures and waits 60 seconds
+        if "OLD" in os.environ:
+            flag = False
+        else:
+            # Draw and pause _within_ Matplotlib’s event loop
+            plt.pause(60.0)  # updates figures and waits 60 seconds
+    plt.ioff()
+    plt.show()
 
 
 if __name__ == "__main__":

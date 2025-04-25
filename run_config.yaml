@@ -2,16 +2,14 @@
 # General experiment settings
 # =============================================================================
 name: "evo_bridge_bidding"
-version: 1.1.1
+version: 1.2.1
 description: |
-  Getting more complexity by more generations and more hidden layers
-  - Fixed best color reward to give based on best contract in the color not for avg
+  Removing hand one hot encoding but adding points to see the difference
   - Variables changes:
-    • population size  [ 800->1000 ]
-    • generations  [ 200->300 ]
-    • elitism  [ 0.075->0.07 ]
-    • length reward  [ 0.4->0.5 ]
-    • hidden layers  [ [256]->[256, 128] ]
+    • generations 1000->1200
+    • input size  [ 94->5 ]
+    • hidden layers  [ [256, 128]->[256] ]
+    • last batch  [ 800->-1 ]
 #seed: 1234
 #use_gpu: false                # evolution typically CPU-bound, set true if fitness eval is heavy
 results_dir: "./archive/v{version}/"
@@ -21,7 +19,7 @@ results_dir: "./archive/v{version}/"
 # =============================================================================
 evolution:
   population_size: 300       # number of NN agents per generation
-  generations: 1000          # total number of generations to run
+  generations: 1200          # total number of generations to run
   selection:
     method: "tournament"     # options: tournament, roulette, rank
     tournament_size: 3
@@ -41,8 +39,8 @@ evolution:
 # Neural network architecture & encoding
 # =============================================================================
 neural_network:
-  input_size: 90             # one‐hot for cards in hand + bidding history encoding
-  hidden_layers: [256, 128]       # one hidden layer with 256 neurons
+  input_size: 42             # (one‐hot for cards in hand )->points + colors lengths + bidding history encoding
+  hidden_layers: [256]       # one hidden layer with 256 neurons
   output_size: 37            # number of possible bids (including pass)
   activation: "tanh"         # hidden layers activation
   output_activation: "softmax"
@@ -82,7 +80,7 @@ data:
   batch:
     size: 64
     first: 1
-    last: 800
+    last: -1                  # -1 == first + generations -1
   files:
     population: "population.pkl"
     statistics: "evolution_stats.csv"

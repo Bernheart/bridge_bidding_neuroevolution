@@ -38,8 +38,22 @@
 - Getting more complexity by more generations and more hidden layers
 - Fixed best color reward to give based on best contract in the color not for avg
 - Variables changes:
-  • population size  [ 800->1000 ]
-  • generations  [ 200->300 ]
+  • population size  [ 200->300 ]
+  • generations  [ 800->1000 ]
   • elitism  [ 0.075->0.07 ]
   • length reward  [ 0.4->0.5 ]
   • hidden layers  [ [256]->[256, 128] ]
+
+## 1.2.0 (24-04-2025)
+- Adding colors lengths to input so the model learns to bid based on hand shape
+- Changing imps linear difference to [(imps difference) ^ 1.5] to punish crazy contracts and reward very good ones
+- Variables changes:
+  • input size  [ 90->94 ]
+
+## 1.2.1 (24-04-2025)
+- Removing hand one hot encoding but adding points to see the difference
+- Variables changes:
+  • generations 1000->1200
+  • input size  [ 94->5 ]
+  • hidden layers  [ [256, 128]->[256] ]
+  • last batch  [ 800->-1 ]

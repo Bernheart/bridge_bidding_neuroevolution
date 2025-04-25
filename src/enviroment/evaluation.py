@@ -40,9 +40,10 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
         # print(batch.hands[deal_index])
 
         bidding_length = 0
+        hand_idx = bidding_length % 2
         # bidding loop
         while bidding_mask[len(bidding_mask) - 1] != 1:
-            input_vector = batch.hands[deal_index][bidding_length % 2] + bidding_mask
+            input_vector = [batch.points[deal_index][hand_idx]] + batch.colors[deal_index][hand_idx] + bidding_mask
             # print(batch.hands[deal_index][bidding_length % 2])
             # print(bidding_mask)
             # print(input_vector)
@@ -58,7 +59,7 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
             # print(suit_id)
             # print()
             if suit_id != 5 and first_to_take_suit[suit_id] == -1:
-                first_to_take_suit[suit_id] = bidding_length % 2
+                first_to_take_suit[suit_id] = hand_idx
             bidding_length += 1
         length += bidding_length
         suit_id = int((last_bid_idx - 1) / g.LEVELS)
@@ -66,11 +67,11 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
         best_score = batch.best_score_for_deal(deal_index)
         imps = point_diff_to_imps(best_score - score)
         # print(imps)
-        imp_score -= imps  # subtracting diff between best score and score
+        imp_score -= imps ** 1.5  # subtracting diff between best score and score
         if last_bid_idx != 0:
-            best_suit_rewards += batch.get_rewards_for_suit(deal_index)[suit_id]
+            best_suit_rewards += batch.suit_rewards[deal_index][suit_id]
         else:
-            best_suit_rewards += batch.get_rewards_for_suit(deal_index)[g.SUITS]  # 5 index for pas
+            best_suit_rewards += batch.suit_rewards[deal_index][g.SUITS]  # 5 index for pas
 
         if for_show:
             bidding_masks.append(bidding_mask)

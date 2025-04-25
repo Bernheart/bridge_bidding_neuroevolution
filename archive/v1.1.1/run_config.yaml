@@ -7,8 +7,8 @@ description: |
   Getting more complexity by more generations and more hidden layers
   - Fixed best color reward to give based on best contract in the color not for avg
   - Variables changes:
-    • population size  [ 800->1000 ]
-    • generations  [ 200->300 ]
+    • population size  [ 200->300 ]
+    • generations  [ 800->1000 ]
     • elitism  [ 0.075->0.07 ]
     • length reward  [ 0.4->0.5 ]
     • hidden layers  [ [256]->[256, 128] ]
