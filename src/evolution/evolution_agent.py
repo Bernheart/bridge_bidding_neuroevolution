@@ -4,6 +4,7 @@ from src.evolution.neural_net import NeuralNet
 class EvoAgent:
     def __init__(self, model: NeuralNet):
         self.model = model
+        self._behavior_descriptor = None
 
     # def act(self, state, legal_actions):
     #     """
@@ -21,3 +22,7 @@ class EvoAgent:
         new_model = self.model.clone()
         new_model.mutate()
         return EvoAgent(new_model)
+
+    @property
+    def behavior_descriptor(self):
+        return self._behavior_descriptor

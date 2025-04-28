@@ -26,7 +26,6 @@ def batch_from_file(batch_number: int):
 
     return Batch(hands, dd_tables)
 
-
 class Batch:
     def __init__(self, hands: list[tuple[list, list]], dd_tables: list[tuple[list, list]]):
         self.hands = hands
@@ -80,7 +79,7 @@ class BatchDistributor:
     def __init__(self):
         self.first_batch = g.FIRST_BATCH
         if g.LAST_BATCH == -1:
-            self.last_batch = self.first_batch + (g.GENERATIONS - 1)
+            self.last_batch = self.first_batch + g.GENERATIONS * g.BATCHES_PER_GENERATION - 1
         else:
             self.last_batch = g.LAST_BATCH
         self.batches = None
@@ -95,6 +94,21 @@ class BatchDistributor:
         #         self.last_batch = int(file.read().strip())
         self.batches = [i for i in inclusive_range(self.first_batch, self.last_batch)]
 
-    def get_random_batch(self) -> Batch:
-        batch_number = self.batches.pop(randrange(len(self.batches)))
-        return batch_from_file(batch_number)
+    def get_random_batch(self, no_batches=g.BATCHES_PER_GENERATION) -> Batch:
+        batch = Batch([], [])
+        for idx in range(no_batches):
+            batch_number = self.batches.pop(randrange(len(self.batches)))
+            batch = add_batches(batch, batch_from_file(batch_number))
+        return batch
+
+
+def add_batches(batch1: Batch, batch2: Batch) -> Batch:
+    batch = Batch([], [])
+
+    batch.hands = batch1.hands + batch2.hands
+    batch.dd_tables = batch1.dd_tables + batch2.dd_tables
+    batch.colors = batch1.colors + batch2.colors
+    batch.points = batch1.points + batch2.points
+    batch.suit_rewards = batch1.suit_rewards + batch2.suit_rewards
+
+    return batch

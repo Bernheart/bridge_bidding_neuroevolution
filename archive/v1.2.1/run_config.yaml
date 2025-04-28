@@ -6,10 +6,10 @@ version: 1.2.1
 description: |
   Removing hand one hot encoding but adding points to see the difference
   - Variables changes:
-    • generations 1000->1200
-    • input size  [ 94->5 ]
-    • hidden layers  [ [256, 128]->[256] ]
-    • last batch  [ 800->-1 ]
+    • (+)generations [ 1000->1200 ]
+    • (+)input size  [ 94->42 ]
+    • (-)hidden layers  [ [256, 128]->[256] ]
+    • (-)last batch  [ 800->-1 ]
 #seed: 1234
 #use_gpu: false                # evolution typically CPU-bound, set true if fitness eval is heavy
 results_dir: "./archive/v{version}/"

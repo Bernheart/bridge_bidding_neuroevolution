@@ -16,11 +16,6 @@ class NeuralNet:
         self.wn = []
         self.bn = []
 
-        self.w1 = None
-        self.b1 = None
-        self.w2 = None
-        self.b2 = None
-
         self.wn.append(np.random.randn(hidden_layers[0], input_size))   # shape: (256, INPUT_SIZE)
         self.bn.append(np.zeros(hidden_layers[0]))                   # shape: (256,)
 
@@ -86,10 +81,10 @@ class NeuralNet:
         #     print(self.wn[i].tolist())
         #     print(self.wn[i])
         return {
-            # 'weights': [self.w1.tolist()] + [w.tolist() for w in self.wn] + [self.w2.tolist()],
-            # 'biases': [self.b1.tolist()] + [b.tolist() for b in self.bn] + [self.b2.tolist()],
-            'weights': [self.w1.tolist()] + [self.w2.tolist()],
-            'biases': [self.b1.tolist()] + [self.b2.tolist()],
+            'weights': [w.tolist() for w in self.wn],
+            'biases': [b.tolist() for b in self.bn]
+            # 'weights': [self.w1.tolist()] + [self.w2.tolist()],
+            # 'biases': [self.b1.tolist()] + [self.b2.tolist()],
 
         }
 

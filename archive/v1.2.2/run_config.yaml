@@ -2,12 +2,16 @@
 # General experiment settings
 # =============================================================================
 name: "evo_bridge_bidding"
-version: 1.2.0
+version: 1.2.2
 description: |
-  Adding colors lengths to input so the model learns to bid based on hand shape
-  - Changing imps linear difference to [(imps difference) ^ 1.5] to punish crazy contracts and reward very good ones
+  Removing suit reward
   - Variables changes:
-    • (+)input size  [ 90->94 ]
+    • (-)generations  [ 1200->1000 ]
+    • (+)[new] batches per generation  [ 1->2 ]
+    • (-)[new] imps to power  [ 1.5->1 ]
+    • (-)reward for best suit  [ 1.2->0 ]
+    • (+)bidding length bonus  [ 0.5->0.4 ]
+    • (-)diversity bonus  [ 0.4->0.3 ]
 #seed: 1234
 #use_gpu: false                # evolution typically CPU-bound, set true if fitness eval is heavy
 results_dir: "./archive/v{version}/"
@@ -37,8 +41,8 @@ evolution:
 # Neural network architecture & encoding
 # =============================================================================
 neural_network:
-  input_size: 94             # one‐hot for cards in hand + colors lengths + bidding history encoding
-  hidden_layers: [256, 128]  # one hidden layer with 256 neurons
+  input_size: 42             # (one‐hot for cards in hand )->points + colors lengths + bidding history encoding
+  hidden_layers: [256]       # one hidden layer with 256 neurons
   output_size: 37            # number of possible bids (including pass)
   activation: "tanh"         # hidden layers activation
   output_activation: "softmax"
@@ -51,10 +55,11 @@ simulation:
 #  deals_per_agent: 64        # how many hands each agent plays per evaluation
   opponents: "all"           # can be random, heuristic, or fixed-bot
   scoring:                   # how fitness is computed
+    imp_to_power: 1
     imp_difference: 1.0
-    good_suit_reward: 1.2
-    bidding_length_bonus: 0.5
-    diversity_bonus: 0.4
+    good_suit_reward: 0
+    bidding_length_bonus: 0.4
+    diversity_bonus: 0.3
 
 # =============================================================================
 # Parallelization & performance
@@ -78,7 +83,8 @@ data:
   batch:
     size: 64
     first: 1
-    last: 800
+    last: -1                  # -1 == first + generations -1
+    per_generation: 2
   files:
     population: "population.pkl"
     statistics: "evolution_stats.csv"

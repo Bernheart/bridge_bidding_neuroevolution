@@ -43,17 +43,18 @@ MUTATION_RATE = cfg['evolution']['mutation']['rate']
 MUTATION_SCALE = cfg['evolution']['mutation']['perturbation_scale']
 
 ELITISM_PROB = cfg['evolution']['elitism']['keep_best']
-# TOURNAMENT_SIZE = cfg['evolution']['selection']['tournament_size']
+TOURNAMENT_SIZE = cfg['evolution']['selection']['tournament_size']
 
 INPUT_SIZE = cfg['neural_network']['input_size']
 OUTPUT_SIZE = cfg['neural_network']['output_size']
 HIDDEN_LAYERS = cfg['neural_network']['hidden_layers']
 print(HIDDEN_LAYERS)
 
+IMPS_POWER = cfg['simulation']['scoring']['imp_to_power']
 IMPS_LAMBDA = cfg['simulation']['scoring']['imp_difference']
 SUIT_LAMBDA = cfg['simulation']['scoring']['good_suit_reward']
 LENGTH_LAMBDA = cfg['simulation']['scoring']['bidding_length_bonus']
-ENTROPY_LAMBDA = cfg['simulation']['scoring']['diversity_bonus']
+# ENTROPY_LAMBDA = cfg['simulation']['scoring']['diversity_bonus']
 
 # LOG_INTERVAL = cfg['logging']['log_interval']
 EVAL_INTERVAL = cfg['logging']['eval_interval']
@@ -62,6 +63,7 @@ SAVE_INTERVAL = cfg['logging']['save_interval']
 BATCH_SIZE = cfg['data']['batch']['size']
 FIRST_BATCH = cfg['data']['batch']['first']
 LAST_BATCH = cfg['data']['batch']['last']
+BATCHES_PER_GENERATION = cfg['data']['batch']['per_generation']
 
 BATCH_FILE_PATH = f'./generator/data/{BATCH_SIZE}/batch{{batch_number}}.csv'
 NO_BATCHES_FILE_PATH = f'./generator/data/no_batches{BATCH_SIZE}.txt'
@@ -71,3 +73,6 @@ JSON_POPULATION_FILE_PATH = RESULTS_DIR + 'population.json.gz'
 STATS_FILE_PATH = RESULTS_DIR + cfg['data']['files']['statistics']
 CONFIG_FILE_PATH_TO_COPY = RESULTS_DIR + CONFIG_FILE_PATH
 CHANGELOG_FILE_PATH = cfg['data']['files']['changelog']
+
+ARCHIVE_SIZE = cfg['advanced']['archive_size']
+DIVERSITY_WEIGHT = cfg['advanced']['diversity_weight']
