@@ -1,7 +1,0 @@
-./archive/v0.0.0/population.json.gz
-./archive/v1.0.0/population.json.gz
-./archive/v1.1.1/population.json.gz
-./archive/v1.1.0/population.json.gz
-./archive/v1.2.1/population.json.gz
-./archive/v1.2.0/population.json.gz
-./generator/.vscode/settings.json
