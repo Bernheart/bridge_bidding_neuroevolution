@@ -48,7 +48,10 @@ class NeuralNet:
             new_net.bn[i] = self.bn[i].copy()
         return new_net
 
-    def mutate(self, rate=g.MUTATION_RATE, sigma=g.MUTATION_SCALE):
+    def mutate(self, rate=-1, sigma=g.MUTATION_SCALE):
+        from src.evolution.evolution import MUTATION_RATE
+        rate = MUTATION_RATE
+
         def mutate_array(arr):
             # 1) mask: which entries to mutate
             mutation_mask = np.random.rand(*arr.shape) < rate
@@ -85,7 +88,6 @@ class NeuralNet:
             'biases': [b.tolist() for b in self.bn]
             # 'weights': [self.w1.tolist()] + [self.w2.tolist()],
             # 'biases': [self.b1.tolist()] + [self.b2.tolist()],
-
         }
 
     def set_parameters(self, params):

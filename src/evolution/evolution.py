@@ -2,20 +2,22 @@ import random
 
 import numpy as np
 
-from src.enviroment.batch import BatchDistributor, batch_from_file, Batch
-from src.enviroment.evaluation import evaluation_fitness_all
+from src.enviroment.batch import BatchDistributor, Batch
 from src.evolution.evolution_agent import EvoAgent
 from src.evolution.neural_net import NeuralNet
-from src.utils.saving_files import save_population, save_stats, create_version_directory, save_config, \
+from src.utils.saving_files import save_population, create_version_directory, save_config, \
     add_version_to_changelog
-from src.runnable.show_model_bidding import print_model_bidding
-from src.utils.utils_functions import inclusive_range
+from src.utils.utils_functions import statistics, random_split_n
 import src.utils.globals as g
+
+MUTATION_RATE = g.EARLY_MUTATION_RATE
+DIVERSITY_WEIGHT = g.EARLY_DIVERSITY_WEIGHT
 
 
 def evolve(population: list[EvoAgent], batch: Batch, elitism=g.ELITISM_PROB, tournament_size=g.TOURNAMENT_SIZE,
            mutate_prob=g.MUTATION_PROB, crossover_prob=g.CROSSOVER_PROB):
     # 1. Evaluate all agents
+    from src.enviroment.evaluation import evaluation_fitness_all
     fitness_scores = evaluation_fitness_all(population, batch)
 
     # 2. Sort and keep top performers
@@ -50,11 +52,25 @@ def evolve(population: list[EvoAgent], batch: Batch, elitism=g.ELITISM_PROB, tou
     return evolved_population
 
 
-def run_evolution(population_size=g.POPULATION_SIZE, generations=g.GENERATIONS, batch_distributor=BatchDistributor()):
-    population = [EvoAgent(NeuralNet()) for _ in range(population_size)]
-    stats = []
+def population_size(gen):
+    # for gen in [1…200], linearly interpolate 300→600
+    population_change = g.POPULATION_SIZE - g.EARLY_POPULATION_SIZE
+    last_generation = g.EARLY_GENERATIONS[1]-1
+    return int(g.EARLY_POPULATION_SIZE + population_change * gen / last_generation)
 
-    for generation in inclusive_range(generations):
+
+def mutation_rate(gen):
+    mutation_rate_change = g.MUTATION_RATE - g.EARLY_MUTATION_RATE
+    last_generation = g.EARLY_GENERATIONS[1]-1
+    return float(g.EARLY_MUTATION_RATE + mutation_rate_change * gen / last_generation)
+
+
+def run_evolution(batch_distributor=BatchDistributor()):
+    global MUTATION_RATE, DIVERSITY_WEIGHT
+    population = [EvoAgent(NeuralNet()) for _ in range(g.EARLY_POPULATION_SIZE)]
+
+    # early phase
+    for generation in range(g.EARLY_GENERATIONS[0], g.EARLY_GENERATIONS[1]):
         batch = batch_distributor.get_random_batch()
         # Evolve population
         population = evolve(population, batch)
@@ -66,26 +82,63 @@ def run_evolution(population_size=g.POPULATION_SIZE, generations=g.GENERATIONS, 
             add_version_to_changelog()
 
         if generation % g.EVAL_INTERVAL == 0:
-            # Evaluate fitness for stats
-            scores, lengths = evaluation_fitness_all(population, batch, for_stats=True)
+            statistics(generation, population, batch)
 
-            best_score = max(scores)
-            avg_score = sum(scores) / len(scores)
-            worst_score = min(scores)
+        # to not lose all data when not going all through
+        if generation % g.SAVE_INTERVAL == 0:
+            save_population(population)
 
-            best_length = max(lengths)
-            avg_length = sum(lengths) / len(lengths)
-            worst_length = min(lengths)
+        # ramp population
+        while len(population) < population_size(generation):
+            population.append(EvoAgent(NeuralNet()))
+        print(f"population size: {population_size(generation)}")
 
-            print(f"Gen {generation}: Best Score={best_score:.3f}, "
-                  f"Avg Score={avg_score:.3f}, Worst Score={worst_score:.3f}")
-            print(f"Best Length={best_length:.3f}, Avg Length={avg_length:.3f}, Worst Length={worst_length:.3f}")
-            stats.append((generation, best_score, avg_score, worst_score, best_length, avg_length, worst_length))
+        # decay mutation rate
+        MUTATION_RATE = mutation_rate(generation)
+        print(f"mutation rate: {MUTATION_RATE}")
 
-            # Save stats to CSV
-            save_stats(stats)
+    # middle phase
+    population = random_split_n(population, g.NO_ISLANDS)
+    DIVERSITY_WEIGHT = g.DIVERSITY_WEIGHT
+    for generation in range(g.MIDDLE_GENERATIONS[0], g.MIDDLE_GENERATIONS[1]):
+        batch = batch_distributor.get_random_batch()
+        population_for_stats = []
+        # Evolve population
+        for island in range(g.NO_ISLANDS):
+            population[island] = evolve(population[island], batch)
+            population_for_stats += population[island]
 
-            print_model_bidding(agent=population[0], batch=batch_from_file(360), n=3)
+        if generation % g.EVAL_INTERVAL == 0:
+            statistics(generation, population_for_stats, batch)
+            for island in range(g.NO_ISLANDS):
+                statistics(generation, population[island], batch, island=island)
+
+        # to not lose all data when not going all through
+        if generation % g.SAVE_INTERVAL == 0:
+            save_population(population_for_stats)
+
+        # island migration
+        if generation % g.ISLAND_MIGRATION_EVERY == 0:
+            island_population = len(population[0])
+            for island in range(g.NO_ISLANDS):
+                top = population[island][:island_population * g.ISLAND_MIGRATION_TOP]
+                population[(island + 1) % g.NO_ISLANDS][-island_population:] = top
+
+    # late phase
+    all_population = []
+    for island in range(g.NO_ISLANDS):
+        all_population += population[island]
+    population = all_population
+
+    MUTATION_RATE = g.LATE_MUTATION_RATE
+    DIVERSITY_WEIGHT = g.LATE_DIVERSITY_WEIGHT
+    for generation in range(g.LATE_GENERATIONS[0], g.LATE_GENERATIONS[1]):
+        batch = batch_distributor.get_random_batch()
+        # Evolve population
+        population = evolve(population, batch)
+
+        if generation % g.EVAL_INTERVAL == 0:
+            statistics(generation, population, batch)
 
         # to not lose all data when not going all through
         if generation % g.SAVE_INTERVAL == 0:

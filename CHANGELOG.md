@@ -78,3 +78,27 @@
   • (+)suit reward  [ 0->0.1 ]
   • (-)bidding length bonus  [ 0.4->0.15 ]
   • (+)diversity bonus  [ 0.3->0 ]
+
+## 1.2.4 (29-04-2025)
+- Adding phases:
+  • early: big research -> ramping population
+  • middle: main phase -> islands (RL in future)
+  • late: perfecting (MAP-Elites in future)
+- Added log that summarize every n generations
+- Variables changes:
+  • (~)[new] phases
+  • (+)population size  [ 300->600 ]
+  • (+)mutation rate  [ 0.1->0.2 ]
+  • (~)hidden layers  [ [256]->[128, 64] ]
+
+## 1.2.4 (29-04-2025)
+- Adding phases:
+  • early: big research -> ramping population
+  • middle: main phase -> islands (RL in future)
+  • late: perfecting (MAP-Elites in future)
+- Added log that summarize every n generations
+- Variables changes:
+  • (~)[new] phases
+  • (+)population size  [ 300->600 ]
+  • (+)mutation rate  [ 0.1->0.2 ]
+  • (~)hidden layers  [ [256]->[128, 64] ]

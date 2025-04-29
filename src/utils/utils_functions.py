@@ -1,4 +1,51 @@
+import random
+
 import numpy as np
+import src.utils.globals as g
+
+
+stats = []
+log = []
+island_stats = []
+
+
+def statistics(generation, population, batch, island=-1):
+    # Evaluate fitness for stats
+    from src.enviroment.evaluation import evaluation_fitness_all
+    scores, lengths = evaluation_fitness_all(population, batch, for_stats=True)
+
+    best_score = max(scores)
+    avg_score = sum(scores) / len(scores)
+    worst_score = min(scores)
+
+    best_length = max(lengths)
+    avg_length = sum(lengths) / len(lengths)
+    worst_length = min(lengths)
+
+    print(f"Gen {generation}: Best Score={best_score:.3f}, "
+          f"Avg Score={avg_score:.3f}, Worst Score={worst_score:.3f}")
+    print(f"Best Length={best_length:.3f}, Avg Length={avg_length:.3f}, Worst Length={worst_length:.3f}")
+    stats_tuple = (generation, best_score, avg_score, worst_score, best_length, avg_length, worst_length)
+
+    from src.utils.saving_files import save_stats
+    file_path = ""
+    if island != -1:
+        island_stats.append(stats_tuple)
+        file_path = g.ISLAND_FILE_PATH.format(island=island)
+    else:
+        stats.append(stats_tuple)
+        file_path = g.STATS_FILE_PATH
+        if len(stats) % g.LOG_INTERVAL == 0:
+            log.append([sum(stat) / g.LOG_INTERVAL for stat in stats[-g.LOG_INTERVAL:]])
+            save_stats(log, file_path=g.LOG_FILE_PATH)
+
+    # Save stats to CSV
+    save_stats(stats, file_path=file_path)
+
+    from src.enviroment.batch import batch_from_file
+    from src.runnable.show_model_bidding import print_model_bidding
+    if island == -1:
+        print_model_bidding(agent=population[0], batch=batch_from_file(360), n=3)
 
 
 def normalize(list_to_normalize, eps=1e-8):
@@ -15,6 +62,12 @@ def next_version(version: str) -> str:
     prefix, last = version[:-1], version[-1]
     new_last = str(int(last) + 1)
     return prefix + new_last
+
+
+def random_split_n(lst, n):
+    random.shuffle(lst)  # in-place O(N) Fisher–Yates shuffle :contentReference[oaicite:0]{index=0}
+    k = len(lst) // n
+    return [lst[i * k:(i + 1) * k] for i in range(n)]  # four O(k) slices, total O(N)
 
 
 def inclusive_range(*args):

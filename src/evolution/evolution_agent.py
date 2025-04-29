@@ -1,6 +1,7 @@
 from src.evolution.neural_net import NeuralNet
 
 
+
 class EvoAgent:
     def __init__(self, model: NeuralNet):
         self.model = model

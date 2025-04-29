@@ -3,6 +3,7 @@ import numpy as np
 from src.enviroment.batch import Batch
 from src.enviroment.brigde import point_diff_to_imps
 from src.evolution.evolution_agent import EvoAgent
+from src.evolution.evolution import DIVERSITY_WEIGHT
 
 import src.utils.globals as g
 from src.utils.utils_functions import normalize
@@ -141,6 +142,6 @@ def evaluation_fitness_all(population: list[EvoAgent], batch: Batch, for_stats=F
     lengths = normalize(lengths)
     suit_rewards = normalize(suit_rewards)
 
-    fitness_scores = (imps * g.IMPS_LAMBDA + diversities * g.DIVERSITY_WEIGHT +
+    fitness_scores = (imps * g.IMPS_LAMBDA + diversities * DIVERSITY_WEIGHT +
                       lengths * g.LENGTH_LAMBDA + suit_rewards * g.SUIT_LAMBDA)
     return list(zip(fitness_scores, population))

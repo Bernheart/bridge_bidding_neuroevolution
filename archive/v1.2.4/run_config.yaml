@@ -2,7 +2,7 @@
 # General experiment settings
 # =============================================================================
 name: "evo_bridge_bidding"
-version: 1.2.5
+version: 1.2.4
 description: |
   Adding phases:
     • early: big research -> ramping population

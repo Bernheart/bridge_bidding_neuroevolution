@@ -57,8 +57,8 @@ def save_config():
     # └─ copies file data and file permissions (mode bits)
 
 
-def save_stats(stats):
-    with open(g.STATS_FILE_PATH, "w", newline="") as f:
+def save_stats(stats, file_path=g.STATS_FILE_PATH):
+    with open(file_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Generation", "Best_Score", "Average_Score", "Worst_Score",
                          "Best_Length", "Average_Length", "Worst_Length"])

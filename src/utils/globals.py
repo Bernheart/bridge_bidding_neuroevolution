@@ -56,7 +56,7 @@ SUIT_LAMBDA = cfg['simulation']['scoring']['good_suit_reward']
 LENGTH_LAMBDA = cfg['simulation']['scoring']['bidding_length_bonus']
 # ENTROPY_LAMBDA = cfg['simulation']['scoring']['diversity_bonus']
 
-# LOG_INTERVAL = cfg['logging']['log_interval']
+LOG_INTERVAL = cfg['logging']['log_interval']
 EVAL_INTERVAL = cfg['logging']['eval_interval']
 SAVE_INTERVAL = cfg['logging']['save_interval']
 
@@ -73,6 +73,23 @@ JSON_POPULATION_FILE_PATH = RESULTS_DIR + 'population.json.gz'
 STATS_FILE_PATH = RESULTS_DIR + cfg['data']['files']['statistics']
 CONFIG_FILE_PATH_TO_COPY = RESULTS_DIR + CONFIG_FILE_PATH
 CHANGELOG_FILE_PATH = cfg['data']['files']['changelog']
+LOG_FILE_PATH = RESULTS_DIR + cfg['data']['files']['log']
+ISLAND_FILE_PATH = RESULTS_DIR + cfg['data']['files']['island']
 
 ARCHIVE_SIZE = cfg['advanced']['archive_size']
 DIVERSITY_WEIGHT = cfg['advanced']['diversity_weight']
+
+phases = cfg['evolution']['phases']
+EARLY_POPULATION_SIZE = phases['early']['population_size']
+EARLY_GENERATIONS = phases['early']['generations']
+EARLY_MUTATION_RATE = phases['early']['mutation_rate']
+EARLY_DIVERSITY_WEIGHT = phases['early']['diversity_weight']
+
+MIDDLE_GENERATIONS = phases['middle']['generations']
+ISLAND_MIGRATION_EVERY = phases['middle']['island_migration']['every']
+ISLAND_MIGRATION_TOP = phases['middle']['island_migration']['top']
+NO_ISLANDS = phases['middle']['island_migration']['number']
+
+LATE_GENERATIONS = phases['late']['generations']
+LATE_MUTATION_RATE = phases['late']['mutation_rate']
+LATE_DIVERSITY_WEIGHT = phases['late']['diversity_weight']
