@@ -91,14 +91,38 @@
   • (+)mutation rate  [ 0.1->0.2 ]
   • (~)hidden layers  [ [256]->[128, 64] ]
 
-## 1.2.4 (29-04-2025)
-- Adding phases:
-  • early: big research -> ramping population
-  • middle: main phase -> islands (RL in future)
-  • late: perfecting (MAP-Elites in future)
-- Added log that summarize every n generations
+## 1.2.5 (29-04-2025)
+- fixed log and islands
 - Variables changes:
-  • (~)[new] phases
-  • (+)population size  [ 300->600 ]
-  • (+)mutation rate  [ 0.1->0.2 ]
-  • (~)hidden layers  [ [256]->[128, 64] ]
+  • (~)[new]better than pass bonus  [ 0.8 ]
+  • (+)good suit reward  [ 0.1->0.2 ]
+
+## 1.2.5 (29-04-2025)
+- fixed log and islands
+- Variables changes:
+  • (~)[new]better than pass bonus  [ 0.8 ]
+  • (+)good suit reward  [ 0.1->0.2 ]
+
+## 1.2.5 (29-04-2025)
+- fixed log and islands
+- Variables changes:
+  • (~)[new]better than pass bonus  [ 0.8 ]
+  • (+)good suit reward  [ 0.1->0.2 ]
+
+## 1.2.5 (29-04-2025)
+- fixed log and islands
+- Variables changes:
+  • (~)[new]better than pass bonus  [ 0.8 ]
+  • (+)good suit reward  [ 0.1->0.2 ]
+
+## 1.2.5 (29-04-2025)
+- fixed log and islands
+- Variables changes:
+  • (~)[new]better than pass bonus  [ 0.8 ]
+  • (+)good suit reward  [ 0.1->0.2 ]
+
+## 1.2.5 (29-04-2025)
+- fixed log and islands
+- Variables changes:
+  • (~)[new]better than pass bonus  [ 0.8 ]
+  • (+)good suit reward  [ 0.1->0.2 ]

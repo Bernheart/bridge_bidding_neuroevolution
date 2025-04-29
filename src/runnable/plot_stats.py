@@ -75,10 +75,17 @@ def plot_stats(file_path=g.STATS_FILE_PATH):
 
         # # read CSV
         # file_path = g.LOG_FILE_PATH
+        # generations.clear()
+        # best_score.clear()
+        # avg_score.clear()
+        # worst_score.clear()
+        # best_length.clear()
+        # avg_length.clear()
+        # worst_length.clear()
         # with open(file_path, "r") as f:
         #     reader = csv.DictReader(f)
         #     for row in reader:
-        #         gen = int(row["Generation"])
+        #         gen = float(row["Generation"])
         #         generations.append(gen)
         #         best_score.append(float(row["Best_Score"]))
         #         avg_score.append(float(row["Average_Score"]))
@@ -87,6 +94,7 @@ def plot_stats(file_path=g.STATS_FILE_PATH):
         #         avg_length.append(float(row["Average_Length"]))
         #         worst_length.append(float(row["Worst_Length"]))
         #
+        # smoothed_gen = generations[cut + window - 1:]
         # # ---- Figure 2: Log ----
         # ax3.clear()
         # ax3.plot(smoothed_gen, moving_average(best_length[cut:], window), label="Avg Best Score")

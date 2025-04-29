@@ -36,7 +36,10 @@ def statistics(generation, population, batch, island=-1):
         stats.append(stats_tuple)
         file_path = g.STATS_FILE_PATH
         if len(stats) % g.LOG_INTERVAL == 0:
-            log.append([sum(stat) / g.LOG_INTERVAL for stat in stats[-g.LOG_INTERVAL:]])
+            log.append([
+                sum(values) / g.LOG_INTERVAL
+                for values in zip(*stats[-g.LOG_INTERVAL:])
+            ])
             save_stats(log, file_path=g.LOG_FILE_PATH)
 
     # Save stats to CSV

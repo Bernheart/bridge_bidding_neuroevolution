@@ -47,6 +47,7 @@ def load_population():
 def create_version_directory():
     dir_path = g.RESULTS_DIR
     os.makedirs(dir_path, exist_ok=g.OVERWRITE_VERSION)
+    os.makedirs(g.RESULTS_DIR + 'islands', exist_ok=g.OVERWRITE_VERSION)
 
 
 def save_config():

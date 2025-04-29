@@ -28,6 +28,8 @@ class NeuralNet:
         self.bn.append(np.zeros(output_size))                      # shape: (OUTPUT_SIZE,)
 
     def forward(self, x, availability_mask):
+        # print("INPUT VECTOR   :", x)
+        # print("AVAILABILITY   :", availability_mask)
         z = np.dot(self.wn[0], np.array(x, dtype=np.float32)) + self.bn[0]
         a = np.tanh(z)
         for i in range(1, len(self.wn)-1):  # not the first and last
@@ -35,6 +37,7 @@ class NeuralNet:
             a = np.tanh(z)
         z = np.dot(self.wn[-1], a) + self.bn[-1]
         probs = masked_softmax(z, availability_mask)
+        # print("Probs:", np.round(probs, 3))
         # probs is a 1D array summing to 1
         action = np.random.choice(len(probs), p=probs)
         one_hot = np.zeros_like(probs)

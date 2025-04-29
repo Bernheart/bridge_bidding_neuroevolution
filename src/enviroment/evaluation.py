@@ -46,6 +46,7 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
     imp_score = 0
     length = 0
     best_suit_rewards = 0
+    better_than_pass = 0
 
     batch_size = len(batch)
 
@@ -63,9 +64,9 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
         # print(batch.hands[deal_index])
 
         bidding_length = 0
-        hand_idx = bidding_length % 2
         # bidding loop
         while bidding_mask[len(bidding_mask) - 1] != 1:
+            hand_idx = bidding_length % 2
             input_vector = [batch.points[deal_index][hand_idx]] + batch.colors[deal_index][hand_idx] + bidding_mask
 
             output_vector = agent.model.forward(input_vector, availability_mask)
@@ -86,6 +87,9 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
         score = batch.dd_tables[deal_index][first_to_take_suit[suit_id]][last_bid_idx]
         best_score = batch.best_score_for_deal(deal_index)
         imps = point_diff_to_imps(best_score - score)
+
+        if score > 0:
+            better_than_pass += point_diff_to_imps(score)
         # print(imps)
         imp_score -= imps ** g.IMPS_POWER  # subtracting diff between best score and score
         if last_bid_idx != 0:
@@ -99,7 +103,8 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
     if for_show:
         return bidding_masks
 
-    return imp_score / batch_size, length / batch_size, best_suit_rewards / batch_size
+    return (imp_score / batch_size, length / batch_size,
+            best_suit_rewards / batch_size, better_than_pass / batch_size)
 
 
 def evaluation_fitness_all(population: list[EvoAgent], batch: Batch, for_stats=False):
@@ -109,9 +114,10 @@ def evaluation_fitness_all(population: list[EvoAgent], batch: Batch, for_stats=F
     imps = []
     lengths = []
     suit_rewards = []
+    better_than_pass_rewards = []
 
     for agent in population:
-        score, length, reward_for_good_suit = evaluation_fitness(agent, batch)
+        score, length, reward_for_good_suit, better_than_pass = evaluation_fitness(agent, batch)
 
         # diversity bonus
         desc = get_behavior_descriptor(agent)
@@ -122,6 +128,7 @@ def evaluation_fitness_all(population: list[EvoAgent], batch: Batch, for_stats=F
         imps.append(score)
         lengths.append(length)
         suit_rewards.append(reward_for_good_suit)
+        better_than_pass_rewards.append(better_than_pass)
 
     if for_stats:
         return imps, lengths
@@ -141,7 +148,9 @@ def evaluation_fitness_all(population: list[EvoAgent], batch: Batch, for_stats=F
     imps = normalize(imps)
     lengths = normalize(lengths)
     suit_rewards = normalize(suit_rewards)
+    better_than_pass_rewards = normalize(better_than_pass_rewards)
 
     fitness_scores = (imps * g.IMPS_LAMBDA + diversities * DIVERSITY_WEIGHT +
-                      lengths * g.LENGTH_LAMBDA + suit_rewards * g.SUIT_LAMBDA)
+                      lengths * g.LENGTH_LAMBDA + suit_rewards * g.SUIT_LAMBDA +
+                      better_than_pass_rewards * g.SCORE_LAMBDA)
     return list(zip(fitness_scores, population))

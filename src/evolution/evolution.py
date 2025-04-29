@@ -6,7 +6,7 @@ from src.enviroment.batch import BatchDistributor, Batch
 from src.evolution.evolution_agent import EvoAgent
 from src.evolution.neural_net import NeuralNet
 from src.utils.saving_files import save_population, create_version_directory, save_config, \
-    add_version_to_changelog
+    add_version_to_changelog, save_stats
 from src.utils.utils_functions import statistics, random_split_n
 import src.utils.globals as g
 
@@ -70,6 +70,7 @@ def run_evolution(batch_distributor=BatchDistributor()):
     population = [EvoAgent(NeuralNet()) for _ in range(g.EARLY_POPULATION_SIZE)]
 
     # early phase
+    save_stats([], file_path=g.LOG_FILE_PATH)
     for generation in range(g.EARLY_GENERATIONS[0], g.EARLY_GENERATIONS[1]):
         batch = batch_distributor.get_random_batch()
         # Evolve population
@@ -118,7 +119,7 @@ def run_evolution(batch_distributor=BatchDistributor()):
             save_population(population_for_stats)
 
         # island migration
-        if generation % g.ISLAND_MIGRATION_EVERY == 0:
+        if generation != g.MIDDLE_GENERATIONS[0] and generation % g.ISLAND_MIGRATION_EVERY == 0:
             island_population = len(population[0])
             for island in range(g.NO_ISLANDS):
                 top = population[island][:island_population * g.ISLAND_MIGRATION_TOP]

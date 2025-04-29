@@ -66,7 +66,7 @@ def print_bidding(bidding_mask):
     print('\n')
 
 
-def print_model_bidding(agent, batch, n=np.inf, filename=g.POPULATION_FILE_PATH):
+def print_model_bidding(agent, batch, n=np.inf):
     bidding_masks = evaluation_fitness(agent, batch, for_show=True)
 
     # for bidding_mask in bidding_masks:
@@ -82,8 +82,8 @@ def print_model_bidding(agent, batch, n=np.inf, filename=g.POPULATION_FILE_PATH)
 if __name__ == '__main__':
     population = load_population()  # to change version -> change env VERSION
 
-    batch_to_test = batch_from_file(1069)
-    print_model_bidding(population[0], batch_to_test)
+    batch_to_test = batch_from_file(2070)
+    print_model_bidding(population[10], batch_to_test)
     print(len(population))
     # for aget in population:
     #     print_model_bidding(aget, batch_to_test)

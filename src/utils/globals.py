@@ -54,6 +54,7 @@ IMPS_POWER = cfg['simulation']['scoring']['imp_to_power']
 IMPS_LAMBDA = cfg['simulation']['scoring']['imp_difference']
 SUIT_LAMBDA = cfg['simulation']['scoring']['good_suit_reward']
 LENGTH_LAMBDA = cfg['simulation']['scoring']['bidding_length_bonus']
+SCORE_LAMBDA = cfg['simulation']['scoring']['better_than_pass_bonus']
 # ENTROPY_LAMBDA = cfg['simulation']['scoring']['diversity_bonus']
 
 LOG_INTERVAL = cfg['logging']['log_interval']
