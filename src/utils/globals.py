@@ -79,6 +79,7 @@ ISLAND_FILE_PATH = RESULTS_DIR + cfg['data']['files']['island']
 
 ARCHIVE_SIZE = cfg['advanced']['archive_size']
 DIVERSITY_WEIGHT = cfg['advanced']['diversity_weight']
+WEIGHT_PENALTY_WEIGHT = cfg['advanced']['weight_penalty_weight']
 
 phases = cfg['evolution']['phases']
 EARLY_POPULATION_SIZE = phases['early']['population_size']

@@ -2,41 +2,39 @@ import numpy as np
 import src.utils.globals as g
 
 
-def masked_softmax(output, mask):
-    masked = np.where(mask, output, -np.inf)
-    exps = np.exp(masked - np.max(masked))
-    exps = np.where(mask, exps, 0.0)  # Make sure masked out entries are zero
-    return exps / np.sum(exps)
+def softmax_with_temp(z, mask, temp=1.0):
+    masked = np.where(mask, z, -np.inf)
+    exps = np.exp((masked - masked.max())/temp)
+    exps = np.where(mask, exps, 0.0)
+    return exps / exps.sum()
 
 
 class NeuralNet:
     def __init__(self, input_size=g.INPUT_SIZE, hidden_layers=g.HIDDEN_LAYERS, output_size=g.OUTPUT_SIZE):
-        # Weighs only; no gradients
-        # W1 maps from input (dim=g.INPUT_SIZE) up to hidden (256)
+        # Prepare sizes: [input_size, *hidden_layers, output_size]
+        layer_sizes = [input_size] + hidden_layers + [output_size]
+
         self.wn = []
         self.bn = []
 
-        self.wn.append(np.random.randn(hidden_layers[0], input_size))   # shape: (256, INPUT_SIZE)
-        self.bn.append(np.zeros(hidden_layers[0]))                   # shape: (256,)
-
-        for i in range(len(hidden_layers)-1):
-            self.wn.append(np.random.randn(hidden_layers[i+1], hidden_layers[i]))
-            self.bn.append(np.zeros(hidden_layers[i+1]))
-
-        # W2 maps from hidden (256) down to outputs
-        self.wn.append(np.random.randn(output_size, hidden_layers[-1]))  # shape: (OUTPUT_SIZE, 256)
-        self.bn.append(np.zeros(output_size))                      # shape: (OUTPUT_SIZE,)
+        # Xavier‐uniform initialization for each pair of consecutive layers
+        for fan_in, fan_out in zip(layer_sizes[:-1], layer_sizes[1:]):
+            limit = np.sqrt(6.0 / (fan_in + fan_out))
+            W = np.random.uniform(-limit, limit, size=(fan_out, fan_in))
+            b = np.zeros(fan_out)
+            self.wn.append(W)
+            self.bn.append(b)                     # shape: (OUTPUT_SIZE,)
 
     def forward(self, x, availability_mask):
         # print("INPUT VECTOR   :", x)
         # print("AVAILABILITY   :", availability_mask)
         z = np.dot(self.wn[0], np.array(x, dtype=np.float32)) + self.bn[0]
-        a = np.tanh(z)
+        a = np.where(z >= 0, z, 0.01 * z)
         for i in range(1, len(self.wn)-1):  # not the first and last
             z = np.dot(self.wn[i], a) + self.bn[i]
-            a = np.tanh(z)
+            a = np.where(z >= 0, z, 0.01 * z)
         z = np.dot(self.wn[-1], a) + self.bn[-1]
-        probs = masked_softmax(z, availability_mask)
+        probs = softmax_with_temp(z, availability_mask)
         # print("Probs:", np.round(probs, 3))
         # probs is a 1D array summing to 1
         action = np.random.choice(len(probs), p=probs)

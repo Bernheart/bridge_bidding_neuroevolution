@@ -70,7 +70,6 @@ def run_evolution(batch_distributor=BatchDistributor()):
     population = [EvoAgent(NeuralNet()) for _ in range(g.EARLY_POPULATION_SIZE)]
 
     # early phase
-    save_stats([], file_path=g.LOG_FILE_PATH)
     for generation in range(g.EARLY_GENERATIONS[0], g.EARLY_GENERATIONS[1]):
         batch = batch_distributor.get_random_batch()
         # Evolve population
@@ -81,6 +80,7 @@ def run_evolution(batch_distributor=BatchDistributor()):
             create_version_directory()
             save_config()
             add_version_to_changelog()
+            save_stats([], file_path=g.LOG_FILE_PATH)
 
         if generation % g.EVAL_INTERVAL == 0:
             statistics(generation, population, batch)

@@ -2,16 +2,9 @@
 # General experiment settings
 # =============================================================================
 name: "evo_bridge_bidding"
-version: 1.2.7
+version: 1.2.6
 description: |
-  Trying to force the model not to bid the same things all the time
-    - Variables changes:
-    • (~)[new]weight penalty  [ 0.1 ]
-    • (~)[new]weight initialization  [ xavier ]
-    • (~)activation  [ tahn->LeakyReLU ]
-    • (+)hidden layers  [ [128, 64]->[256, 128] ]
-    • (-)bidding length bonus  [ 0.4->0.3 ]
-    • (-)better than pass bonus  [ 0.8->0.4 ]
+  fixed a big bug with hand index
 #seed: 1234
 #use_gpu: false                # evolution typically CPU-bound, set true if fitness eval is heavy
 results_dir: "./archive/v{version}/"
@@ -61,11 +54,11 @@ evolution:
 # =============================================================================
 neural_network:
   input_size: 42             # (one‐hot for cards in hand )->points + colors lengths + bidding history encoding
-  hidden_layers: [256, 128]   # two hidden layers with 128, 64 neurons
+  hidden_layers: [128, 64]   # two hidden layers with 128, 64 neurons
   output_size: 37            # number of possible bids (including pass)
-  activation: "LeakyReLU"         # hidden layers activation
+  activation: "tanh"         # hidden layers activation
   output_activation: "softmax"
-  weight_init: "xavier"      # weight initialization scheme
+#  weight_init: "xavier"      # weight initialization scheme
 
 # =============================================================================
 # Bridge simulation / fitness evaluation
@@ -118,8 +111,7 @@ data:
 # Advanced / optional
 # =============================================================================
 advanced:
-  overwrite_version: false    # be very careful with this one
+  overwrite_version: true    # be very careful with this one
   use_behavioral_diversity: true
   diversity_weight: 0.5       # weight given to novelty in fitness
-  weight_penalty_weight: 0.1
   archive_size: 100           # for MAP-Elites or novelty archives

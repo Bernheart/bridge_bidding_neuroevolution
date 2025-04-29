@@ -42,6 +42,13 @@ def novelty_score(descriptor, archive):
     return float(min(dists))
 
 
+def weight_penalty(agent):
+    total = 0.0
+    for W in agent.model.wn:
+        total += np.sum(W**2)
+    return total
+
+
 def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
     imp_score = 0
     length = 0
@@ -149,8 +156,10 @@ def evaluation_fitness_all(population: list[EvoAgent], batch: Batch, for_stats=F
     lengths = normalize(lengths)
     suit_rewards = normalize(suit_rewards)
     better_than_pass_rewards = normalize(better_than_pass_rewards)
+    penalties = normalize([weight_penalty(a) for a in population])
 
     fitness_scores = (imps * g.IMPS_LAMBDA + diversities * DIVERSITY_WEIGHT +
                       lengths * g.LENGTH_LAMBDA + suit_rewards * g.SUIT_LAMBDA +
-                      better_than_pass_rewards * g.SCORE_LAMBDA)
+                      better_than_pass_rewards * g.SCORE_LAMBDA -
+                      penalties * g.WEIGHT_PENALTY_WEIGHT)
     return list(zip(fitness_scores, population))
