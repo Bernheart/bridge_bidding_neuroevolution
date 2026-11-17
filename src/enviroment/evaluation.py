@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 from src.enviroment.batch import Batch
 from src.enviroment.brigde import point_diff_to_imps
@@ -63,7 +64,10 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
     for deal_index in range(batch_size):
         # creating all necessary preparations
         bidding_mask = [0 for _ in range(g.BIDDING_MASK_SIZE)]  # No bids at the start
-        availability_mask = [1 for _ in range(g.BIDDING_MASK_SIZE)]
+        availability_mask = torch.ones(
+            g.BIDDING_MASK_SIZE,      # shape
+            dtype=torch.bool         # boolean dtype
+        )
         availability_mask[len(availability_mask) - 1] = 0  # Cant have second pass imminently
 
         first_to_take_suit = [-1 for _ in range(g.SUITS)]
@@ -75,6 +79,7 @@ def evaluation_fitness(agent: EvoAgent, batch: Batch, for_show=False):
         while bidding_mask[len(bidding_mask) - 1] != 1:
             hand_idx = bidding_length % 2
             input_vector = [batch.points[deal_index][hand_idx]] + batch.colors[deal_index][hand_idx] + bidding_mask
+            input_vector = torch.tensor(input_vector)
 
             output_vector = agent.model.forward(input_vector, availability_mask)
             bid_idx = int(np.argmax(output_vector))

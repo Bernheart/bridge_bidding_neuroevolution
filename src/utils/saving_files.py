@@ -8,7 +8,7 @@ from datetime import date
 import orjson
 
 from src.evolution.evolution_agent import EvoAgent
-from src.evolution.neural_net import NeuralNet
+from src.evolution.neural_net import NeuralNetTorch
 from src.utils import globals as g
 import shutil
 
@@ -31,7 +31,7 @@ def load_population():
 
     population = []
     for params in loaded_params:
-        agent = EvoAgent(NeuralNet())
+        agent = EvoAgent(NeuralNetTorch())
         agent.model.set_parameters(params)
         population.append(agent)
     return population

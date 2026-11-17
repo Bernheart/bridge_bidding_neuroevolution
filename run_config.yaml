@@ -2,7 +2,7 @@
 # General experiment settings
 # =============================================================================
 name: "evo_bridge_bidding"
-version: 1.2.7
+version: 1.2.8
 description: |
   Trying to force the model not to bid the same things all the time
     - Variables changes:

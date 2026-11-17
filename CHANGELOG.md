@@ -99,3 +99,13 @@
 
 ## 1.2.6 (29-04-2025)
 - fixed a big bug with hand index
+
+## 1.2.7 (30-04-2025)
+- Trying to force the model not to bid the same things all the time
+  - Variables changes:
+  • (~)[new]weight penalty  [ 0.1 ]
+  • (~)[new]weight initialization  [ xavier ]
+  • (~)activation  [ tahn->LeakyReLU ]
+  • (+)hidden layers  [ [128, 64]->[256, 128] ]
+  • (-)bidding length bonus  [ 0.4->0.3 ]
+  • (-)better than pass bonus  [ 0.8->0.4 ]

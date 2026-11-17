@@ -28,7 +28,6 @@ def statistics(generation, population, batch, island=-1):
     stats_tuple = (generation, best_score, avg_score, worst_score, best_length, avg_length, worst_length)
 
     from src.utils.saving_files import save_stats
-    file_path = ""
     if island != -1:
         island_stats.append(stats_tuple)
         file_path = g.ISLAND_FILE_PATH.format(island=island)
@@ -40,6 +39,7 @@ def statistics(generation, population, batch, island=-1):
                 sum(values) / g.LOG_INTERVAL
                 for values in zip(*stats[-g.LOG_INTERVAL:])
             ])
+            log[-1][0] = generation
             save_stats(log, file_path=g.LOG_FILE_PATH)
 
     # Save stats to CSV

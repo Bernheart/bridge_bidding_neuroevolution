@@ -4,7 +4,7 @@ import numpy as np
 
 from src.enviroment.batch import BatchDistributor, Batch
 from src.evolution.evolution_agent import EvoAgent
-from src.evolution.neural_net import NeuralNet
+from src.evolution.neural_net import NeuralNetTorch
 from src.utils.saving_files import save_population, create_version_directory, save_config, \
     add_version_to_changelog, save_stats
 from src.utils.utils_functions import statistics, random_split_n
@@ -42,7 +42,7 @@ def evolve(population: list[EvoAgent], batch: Batch, elitism=g.ELITISM_PROB, tou
                 child = EvoAgent(parents[i].model.clone())
 
             if np.random.random() < mutate_prob:
-                child = child.clone_and_mutate()
+                child = child.clone_and_mutate(mutation_rate=MUTATION_RATE)
 
             offspring.append(child)
 
@@ -67,7 +67,7 @@ def mutation_rate(gen):
 
 def run_evolution(batch_distributor=BatchDistributor()):
     global MUTATION_RATE, DIVERSITY_WEIGHT
-    population = [EvoAgent(NeuralNet()) for _ in range(g.EARLY_POPULATION_SIZE)]
+    population = [EvoAgent(NeuralNetTorch()) for _ in range(g.EARLY_POPULATION_SIZE)]
 
     # early phase
     for generation in range(g.EARLY_GENERATIONS[0], g.EARLY_GENERATIONS[1]):
@@ -91,7 +91,7 @@ def run_evolution(batch_distributor=BatchDistributor()):
 
         # ramp population
         while len(population) < population_size(generation):
-            population.append(EvoAgent(NeuralNet()))
+            population.append(EvoAgent(NeuralNetTorch()))
         print(f"population size: {population_size(generation)}")
 
         # decay mutation rate
@@ -122,8 +122,9 @@ def run_evolution(batch_distributor=BatchDistributor()):
         if generation != g.MIDDLE_GENERATIONS[0] and generation % g.ISLAND_MIGRATION_EVERY == 0:
             island_population = len(population[0])
             for island in range(g.NO_ISLANDS):
-                top = population[island][:island_population * g.ISLAND_MIGRATION_TOP]
-                population[(island + 1) % g.NO_ISLANDS][-island_population:] = top
+                top_n = int(island_population * g.ISLAND_MIGRATION_TOP)
+                top = population[island][:top_n]
+                population[(island + 1) % g.NO_ISLANDS][-top_n:] = top
 
     # late phase
     all_population = []

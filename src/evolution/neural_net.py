@@ -1,97 +1,120 @@
-import numpy as np
+import copy
+import torch
+import torch.nn as nn
 import src.utils.globals as g
 
 
-def softmax_with_temp(z, mask, temp=1.0):
-    masked = np.where(mask, z, -np.inf)
-    exps = np.exp((masked - masked.max())/temp)
-    exps = np.where(mask, exps, 0.0)
-    return exps / exps.sum()
+class SoftmaxWithTempMask(nn.Module):
+    def __init__(self, temp: float = 2.0):
+        super().__init__()
+        self.temp = temp
+
+    def forward(self, logits: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        # mask: same shape as logits, True = available
+        neg_inf = torch.finfo(logits.dtype).min
+        masked_logits = torch.where(mask, logits, neg_inf)
+        # temperature scaling
+        scaled = masked_logits / self.temp
+        # subtract max for numerical stability
+        scaled = scaled - scaled.max(dim=-1, keepdim=True).values
+        exps = torch.exp(scaled) * mask.to(logits.dtype)
+        return exps / exps.sum(dim=-1, keepdim=True)
 
 
-class NeuralNet:
-    def __init__(self, input_size=g.INPUT_SIZE, hidden_layers=g.HIDDEN_LAYERS, output_size=g.OUTPUT_SIZE):
-        # Prepare sizes: [input_size, *hidden_layers, output_size]
+class NeuralNetTorch(nn.Module):
+    def __init__(self,
+                 input_size: int = g.INPUT_SIZE,
+                 hidden_layers: list[int] = g.HIDDEN_LAYERS,
+                 output_size: int = g.OUTPUT_SIZE,
+                 temp: float = 1.0):
+        super().__init__()
         layer_sizes = [input_size] + hidden_layers + [output_size]
 
-        self.wn = []
-        self.bn = []
+        # build a ModuleList of linears
+        self.linears = nn.ModuleList()
+        for in_f, out_f in zip(layer_sizes[:-1], layer_sizes[1:]):
+            lin = nn.Linear(in_f, out_f)
+            # Xavier‐uniform initialization
+            nn.init.xavier_uniform_(lin.weight)
+            nn.init.zeros_(lin.bias)
+            self.linears.append(lin)
 
-        # Xavier‐uniform initialization for each pair of consecutive layers
-        for fan_in, fan_out in zip(layer_sizes[:-1], layer_sizes[1:]):
-            limit = np.sqrt(6.0 / (fan_in + fan_out))
-            W = np.random.uniform(-limit, limit, size=(fan_out, fan_in))
-            b = np.zeros(fan_out)
-            self.wn.append(W)
-            self.bn.append(b)                     # shape: (OUTPUT_SIZE,)
+        self.activation = nn.LeakyReLU(negative_slope=0.01)
+        self.softmax_mask = SoftmaxWithTempMask(temp)
 
-    def forward(self, x, availability_mask):
-        # print("INPUT VECTOR   :", x)
-        # print("AVAILABILITY   :", availability_mask)
-        z = np.dot(self.wn[0], np.array(x, dtype=np.float32)) + self.bn[0]
-        a = np.where(z >= 0, z, 0.01 * z)
-        for i in range(1, len(self.wn)-1):  # not the first and last
-            z = np.dot(self.wn[i], a) + self.bn[i]
-            a = np.where(z >= 0, z, 0.01 * z)
-        z = np.dot(self.wn[-1], a) + self.bn[-1]
-        probs = softmax_with_temp(z, availability_mask)
-        # print("Probs:", np.round(probs, 3))
-        # probs is a 1D array summing to 1
-        action = np.random.choice(len(probs), p=probs)
-        one_hot = np.zeros_like(probs)
-        one_hot[action] = 1
+    def forward(self, x: torch.Tensor, availability_mask: torch.Tensor) -> torch.Tensor:
+        """
+        x: float tensor of shape (input_size,)
+        availability_mask: boolean tensor of shape (output_size,)
+        returns one‐hot action tensor of shape (output_size,)
+        """
+        a = x
+        for lin in self.linears[:-1]:
+            a = self.activation(lin(a))
+        logits = self.linears[-1](a)
+        probs = self.softmax_mask(logits, availability_mask)
+        # sample an action
+        action = torch.multinomial(probs, num_samples=1).item()
+        one_hot = torch.zeros_like(probs)
+        one_hot[action] = 1.0
         return one_hot
 
-    def clone(self):
-        new_net = NeuralNet()
-        for i in range(len(self.wn)):
-            new_net.wn[i] = self.wn[i].copy()
-            new_net.bn[i] = self.bn[i].copy()
-        return new_net
+    def clone(self) -> "NeuralNetTorch":
+        # deep copy parameters into a fresh instance
+        new = NeuralNetTorch(
+            input_size=self.linears[0].in_features,
+            hidden_layers=[L.out_features for L in self.linears[:-1]],
+            output_size=self.linears[-1].out_features,
+            temp=self.softmax_mask.temp
+        )
+        new.load_state_dict(copy.deepcopy(self.state_dict()))
+        return new
 
-    def mutate(self, rate=-1, sigma=g.MUTATION_SCALE):
-        from src.evolution.evolution import MUTATION_RATE
-        rate = MUTATION_RATE
+    def mutate(self, rate: float = g.MUTATION_RATE, sigma: float = g.MUTATION_SCALE):
+        """
+        Mutate each parameter with probability `rate`, adding N(0, sigma^2) noise.
+        """
+        with torch.no_grad():
+            for param in self.parameters():
+                mask = torch.rand_like(param) < rate
+                noise = torch.randn_like(param) * sigma
+                param.add_(mask.to(param.dtype) * noise)
 
-        def mutate_array(arr):
-            # 1) mask: which entries to mutate
-            mutation_mask = np.random.rand(*arr.shape) < rate
-            # 2) noise ~ N(0, sigma^2)
-            noise = np.random.randn(*arr.shape) * sigma
-            # 3) apply only where mask is True
-            arr += mutation_mask * noise
-
-        for i in range(len(self.wn)):
-            mutate_array(self.wn[i])
-            mutate_array(self.bn[i])
-
-    def crossover(self, other):
-        def blend(a, b):
-            mask = np.random.rand(*a.shape) < 0.5
-            return np.where(mask, a, b)
-
+    def crossover(self, other: "NeuralNetTorch") -> "NeuralNetTorch":
+        """
+        Create a child by randomly picking each parameter element from self or other.
+        """
         child = self.clone()
-
-        for i in range(len(self.wn)):
-            child.wn[i] = blend(self.wn[i], other.wn[i])
-            child.bn[i] = blend(self.bn[i], other.bn[i])
-
+        child_state = child.state_dict()
+        other_state = other.state_dict()
+        new_state = {}
+        for key in child_state:
+            p1 = child_state[key]
+            p2 = other_state[key]
+            mask = torch.rand_like(p1) < 0.5
+            new_state[key] = torch.where(mask, p1, p2)
+        child.load_state_dict(new_state)
         return child
 
-    def get_parameters(self):
-        # print(self.wn)
-        # for i in range(len(self.wn)):
-        #     print(self.wn[i].shape)
-        #     print(self.wn[i].tolist())
-        #     print(self.wn[i])
+    def get_parameters(self) -> dict:
+        # return CPU‐numpy lists
         return {
-            'weights': [w.tolist() for w in self.wn],
-            'biases': [b.tolist() for b in self.bn]
-            # 'weights': [self.w1.tolist()] + [self.w2.tolist()],
-            # 'biases': [self.b1.tolist()] + [self.b2.tolist()],
+            'weights': [p.detach().cpu().numpy().tolist()
+                        for name, p in self.named_parameters() if "weight" in name],
+            'biases': [p.detach().cpu().numpy().tolist()
+                       for name, p in self.named_parameters() if "bias" in name]
         }
 
-    def set_parameters(self, params):
-        self.wn = [np.array(w) for w in params['weights']]
-        self.bn = [np.array(b) for b in params['biases']]
-
+    def set_parameters(self, params: dict):
+        # assumes same ordering as get_parameters
+        with torch.no_grad():
+            idx_w = idx_b = 0
+            for name, p in self.named_parameters():
+                if "weight" in name:
+                    tensor = torch.tensor(params['weights'][idx_w], dtype=p.dtype)
+                    p.copy_(tensor)
+                    idx_w += 1
+                elif "bias" in name:
+                    tensor = torch.tensor(params['biases'][idx_b], dtype=p.dtype)
+                    p.copy_(tensor)
+                    idx_b += 1
