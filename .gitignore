@@ -174,13 +174,21 @@ cython_debug/
 .pypirc
 
 # .vscode
-/generator/.vscode
+/legacy/generator/.vscode
 
 # DDS
-/generator/dds
+/legacy/generator/dds
 
 # Data
-/generator/data
+/legacy/generator/data
 
 *.csv
 *.json.gz
+
+# macOS
+.DS_Store
+
+# bridgebid (rewrite): local data, runs and downloaded models
+/data/
+/runs/
+/models/
