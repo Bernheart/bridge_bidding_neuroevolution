@@ -45,6 +45,7 @@ addopts = "-m 'not oracle and not slow'"
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+extend-exclude = ["legacy"]  # frozen snapshot of the GA version, not linted
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

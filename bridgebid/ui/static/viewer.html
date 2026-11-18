@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Board viewer</title>
+<style>
+:root {
+  --bg: #f4f1ea; --panel: #fffdf8; --ink: #1d1d1b; --muted: #6b675e; --line: #ddd6c8; --felt: #2f5d4a;
+  --felt-ink: #f4f1ea; --accent: #2f5d4a; --good: #1f7a3f; --bad: #b3261e; --vul: #c0392b; --hl: #fff2c4;
+  --spade: #1d3a8a; --heart: #c0392b; --diamond: #d0701b; --club: #2d7a3a; --chip: #ece6d8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --panel: #1e2125; --ink: #e8e4da; --muted: #9a958a; --line: #33373d; --felt: #22463a;
+    --felt-ink: #e8e4da; --accent: #6fbf95; --good: #5cc283; --bad: #ff7b6e; --vul: #ff7b6e; --hl: #3d3620;
+    --spade: #8fb0ff; --heart: #ff7b6e; --diamond: #ffae5c; --club: #6fd08a; --chip: #2a2e33;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a; --panel: #1e2125; --ink: #e8e4da; --muted: #9a958a; --line: #33373d; --felt: #22463a;
+  --felt-ink: #e8e4da; --accent: #6fbf95; --good: #5cc283; --bad: #ff7b6e; --vul: #ff7b6e; --hl: #3d3620;
+  --spade: #8fb0ff; --heart: #ff7b6e; --diamond: #ffae5c; --club: #6fd08a; --chip: #2a2e33;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+header { padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel);
+  display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; }
+header h1 { font-size: 17px; margin: 0; }
+header .sub { color: var(--muted); font-size: 13px; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 16px;
+  border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+.group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.group label { color: var(--muted); font-size: 13px; }
+.btn { border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.btn.on { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+input[type=number] { width: 64px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); }
+select { padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.counter { font-variant-numeric: tabular-nums; min-width: 9em; text-align: center; }
+.toggle { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; color: var(--muted); cursor: pointer; }
+main { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 0; }
+#list { border-right: 1px solid var(--line); max-height: calc(100vh - 110px); overflow-y: auto; position: sticky;
+  top: 52px; align-self: start; font-size: 13px; font-variant-numeric: tabular-nums; }
+#list a { display: flex; justify-content: space-between; padding: 3px 12px; color: inherit; text-decoration: none; }
+#list a:hover { background: var(--chip); }
+#list a.cur { background: var(--hl); font-weight: 600; }
+#view { padding: 16px; min-width: 0; }
+.top { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.deal { display: grid; grid-template-columns: repeat(3, minmax(96px, auto)); grid-template-rows: auto auto auto;
+  gap: 6px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.hand { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hand .who { font-size: 12px; color: var(--muted); }
+.hand .who b { color: var(--ink); }
+.hand.hidden .suits { opacity: .45; }
+.N { grid-column: 2; grid-row: 1; } .W { grid-column: 1; grid-row: 2; } .E { grid-column: 3; grid-row: 2; }
+.S { grid-column: 2; grid-row: 3; }
+.compass { grid-column: 2; grid-row: 2; background: var(--felt); color: var(--felt-ink); border-radius: 8px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; text-align: center;
+  font-size: 12px; min-width: 96px; min-height: 84px; align-items: center; }
+.compass .bn { grid-column: 2; grid-row: 2; font-size: 18px; font-weight: 700; }
+.compass .sN { grid-column: 2; grid-row: 1; } .compass .sS { grid-column: 2; grid-row: 3; }
+.compass .sW { grid-column: 1; grid-row: 2; } .compass .sE { grid-column: 3; grid-row: 2; }
+.compass .v { background: var(--vul); color: #fff; border-radius: 3px; padding: 0 4px; }
+.compass .dl { text-decoration: underline; font-weight: 700; }
+.s0 { color: var(--club); } .s1 { color: var(--diamond); } .s2 { color: var(--heart); } .s3 { color: var(--spade); }
+.sym { display: inline-block; width: 1.1em; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.dd table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.dd th, .dd td { padding: 2px 8px; text-align: center; }
+.dd th { color: var(--muted); font-weight: 500; }
+.dd td.make { font-weight: 700; }
+.summary { display: flex; flex-direction: column; gap: 4px; min-width: 200px; }
+.summary .big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+.pairs { display: grid; gap: 12px; margin-top: 16px; }
+.pair h3 { margin: 0 0 8px; font-size: 15px; display: flex; gap: 10px; align-items: baseline; }
+.pair h3 .imp { font-variant-numeric: tabular-nums; }
+.tables { display: flex; flex-wrap: wrap; gap: 12px 28px; }
+.tbl { min-width: 0; }
+.tbl .cap { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.auction { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.auction th { font-size: 12px; color: var(--muted); font-weight: 500; padding: 2px 8px; text-align: left; }
+.auction th.me { color: var(--accent); font-weight: 700; }
+.auction td { padding: 2px 8px; vertical-align: top; min-width: 52px; }
+.auction td.m { background: var(--chip); border-radius: 4px; }
+.prob { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; line-height: 1.25; }
+.c.pass { color: var(--muted); } .c.dbl { color: var(--bad); font-weight: 700; }
+.contract { margin-top: 6px; font-size: 13px; }
+.empty { color: var(--muted); padding: 40px 0; text-align: center; }
+.bidbox { display: grid; grid-template-columns: repeat(5, 54px); gap: 4px; margin-top: 8px; }
+.bidbox .row3 { grid-column: span 5; display: flex; gap: 4px; }
+.bidbox button { padding: 5px 0; border: 1px solid var(--line); border-radius: 5px; background: var(--panel);
+  cursor: pointer; font-variant-numeric: tabular-nums; }
+.bidbox .row3 button { flex: 1; }
+.bidbox button:hover:not(:disabled) { border-color: var(--accent); background: var(--hl); }
+.bidbox button:disabled { opacity: .18; cursor: default; }
+.choice { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
+.note { color: var(--muted); font-size: 13px; }
+.err { color: var(--bad); }
+.hidden-el { display: none !important; }
+@media (max-width: 760px) {
+  main { grid-template-columns: minmax(0, 1fr); }
+  #list { display: none; }
+  .deal { grid-template-columns: repeat(3, minmax(80px, auto)); padding: 10px; gap: 4px 8px; font-size: 14px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Board viewer</h1>
+  <span class="sub" id="subtitle"></span>
+</header>
+<div class="bar" id="bar">
+  <div class="group">
+    <button class="btn" id="first" title="First board">⏮</button>
+    <button class="btn" id="prev" title="Previous board (←)">←</button>
+    <span class="counter" id="counter"></span>
+    <button class="btn" id="next" title="Next board (→)">→</button>
+    <button class="btn" id="last" title="Last board">⏭</button>
+    <form id="jumpform" class="group"><input type="number" id="jump" min="1" placeholder="board">
+      <button class="btn" type="submit">Go</button></form>
+  </div>
+  <div class="group">
+    <label for="swing">swing</label>
+    <select id="swing"></select>
+    <label for="minswing">|swing| ≥</label>
+    <input type="number" id="minswing" min="0" value="0">
+    <label for="sort">sort</label>
+    <select id="sort">
+      <option value="board">board order</option>
+      <option value="worst">worst swing first</option>
+      <option value="best">best swing first</option>
+    </select>
+  </div>
+  <div class="group">
+    <label class="toggle"><input type="checkbox" id="t-probs"> probabilities</label>
+    <label class="toggle"><input type="checkbox" id="t-dd"> DD table</label>
+    <label class="toggle"><input type="checkbox" id="t-hcp"> HCP</label>
+  </div>
+  <div class="group" id="bidgroup">
+    <button class="btn primary" id="bidbtn">Bid this board</button>
+  </div>
+</div>
+<main>
+  <nav id="list" aria-label="Boards"></nav>
+  <section id="view"></section>
+</main>
+<script>
+const D = /*__BOARD_DATA__*/null;
+const SEATS = ["North", "East", "South", "West"];
+const SYM = ["♣", "♦", "♥", "♠", "NT"];
+const $ = (id) => document.getElementById(id);
+
+// ---------- settings (per-viewer conveniences only) ----------
+const DEFAULTS = { swing: "total", minSwing: 0, sort: "board", probs: true, dd: true, hcp: true,
+  hide: true, hints: false, reasons: true };
+let S = { ...DEFAULTS };
+try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem("bridgebid-viewer") || "{}") }; } catch (e) {}
+function save() { try { localStorage.setItem("bridgebid-viewer", JSON.stringify(S)); } catch (e) {} }
+
+// ---------- formatting ----------
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function callHTML(a) {
+  if (a === 0) return '<span class="c pass">Pass</span>';
+  if (a === 1) return '<span class="c dbl">X</span>';
+  if (a === 2) return '<span class="c dbl">XX</span>';
+  const b = a - 3, lv = Math.floor(b / 5) + 1, st = b % 5;
+  return `<span class="c">${lv}<span class="${st < 4 ? "s" + st : ""}">${SYM[st]}</span></span>`;
+}
+function callText(a) {
+  if (a === 0) return "Pass"; if (a === 1) return "X"; if (a === 2) return "XX";
+  const b = a - 3; return `${Math.floor(b / 5) + 1}${SYM[b % 5]}`;
+}
+function probsHTML(p) {
+  if (!p || !p.length) return "";
+  return '<span class="prob">' + p.map(([a, q]) => `${callHTML(a)} ${Math.round(q * 100)}%`).join(" · ") + "</span>";
+}
+function signed(x) { return (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x); }
+function cls(x) { return x > 0 ? "pos" : x < 0 ? "neg" : ""; }
+function vulText(v) { return v[0] && v[1] ? "Both" : v[0] ? "NS" : v[1] ? "EW" : "None"; }
+function contractHTML(c) {
+  if (c.level === 0) return "Passed out · NS 0";
+  const bid = callHTML(3 + 5 * (c.level - 1) + c.strain) + (c.xx ? " XX" : c.x ? " X" : "");
+  const res = c.tricks - (c.level + 6);
+  return `${bid} by ${SEATS[c.declarer]} · DD ${c.tricks} (${res === 0 ? "=" : signed(res)}) · ` +
+    `NS <b class="${cls(c.score)}">${signed(c.score)}</b>`;
+}
+
+// ---------- pieces ----------
+function handHTML(b, seat, hidden, label) {
+  const suits = b.hands[seat].map((r, i) => {  // hidden hands get no cards in the page at all
+    const s = 3 - i, cards = hidden ? "?" : r ? esc(r.replace(/T/g, "10")) : "—";
+    return `<div><span class="sym s${s}">${SYM[s]}</span>${cards}</div>`;
+  }).join("");
+  const pts = S.hcp && !hidden ? ` <span>(${b.hcp[seat]})</span>` : "";
+  return `<div class="hand ${"NESW"[seat]} ${hidden ? "hidden" : ""}"><div class="who"><b>${SEATS[seat]}</b>${pts}` +
+    `${label ? " · " + esc(label) : ""}</div><div class="suits">${suits}</div></div>`;
+}
+function dealHTML(b, opts = {}) {
+  const v = (s) => (b.vul[s % 2] ? "v" : "") + (b.dealer === s ? " dl" : "");
+  let h = '<div class="deal">';
+  for (let s = 0; s < 4; s++) h += handHTML(b, s, opts.hide && opts.hide(s), opts.labels ? opts.labels[s] : "");
+  h += `<div class="compass" title="Dealer ${SEATS[b.dealer]}, vulnerable ${vulText(b.vul)}">` +
+    ["N", "E", "S", "W"].map((c, s) => `<span class="s${c}"><span class="${v(s)}">${c}</span></span>`).join("") +
+    `<span class="bn">${b.n}</span></div></div>`;
+  return h;
+}
+function ddHTML(b) {
+  const order = [0, 2, 1, 3], strains = [4, 3, 2, 1, 0];
+  let h = '<div class="card dd"><table><tr><th></th>' +
+    strains.map((s) => `<th><span class="${s < 4 ? "s" + s : ""}">${SYM[s]}</span></th>`).join("") + "</tr>";
+  for (const d of order) {
+    h += `<tr><th>${"NESW"[d]}</th>` + strains.map((s) => {
+      const t = b.dd[5 * d + s];
+      return `<td class="${t >= 7 ? "make" : ""}">${t >= 7 ? t - 6 : "–"}</td>`;
+    }).join("") + "</tr>";
+  }
+  return h + '</table><div class="note">levels that make, double dummy</div></div>';
+}
+// calls: list of actions; marks(j) -> true to highlight call j; probs(j) -> top-k list or null
+function auctionHTML(dealer, calls, marks, probs, me) {
+  const order = [3, 0, 1, 2];
+  let h = '<table class="auction"><tr>' +
+    order.map((s) => `<th class="${me && me(s) ? "me" : ""}">${"NESW"[s]}</th>`).join("") + "</tr><tr>";
+  let col = order.indexOf(dealer);
+  for (let i = 0; i < col; i++) h += "<td></td>";
+  calls.forEach((a, j) => {
+    if (col === 4) { h += "</tr><tr>"; col = 0; }
+    const p = probs ? probs(j) : null;
+    h += `<td class="${marks && marks(j) ? "m" : ""}">${callHTML(a)}${p ? probsHTML(p) : ""}</td>`;
+    col++;
+  });
+  return h + "</tr></table>";
+}
+
+// ---------- viewer ----------
+function swingOf(b) {
+  const i = D.opponents.indexOf(S.swing);  // stored by name, so it means the same opponent in every file
+  return i < 0 ? b.pairs.reduce((t, p) => t + p.imps, 0) : b.pairs[i].imps;
+}
+let list = [], pos = 0, bidding = null;
+function rebuild(keepN) {
+  list = D.boards.map((b, i) => i).filter((i) => Math.abs(swingOf(D.boards[i])) >= S.minSwing);
+  if (S.sort === "worst") list.sort((x, y) => swingOf(D.boards[x]) - swingOf(D.boards[y]) || x - y);
+  if (S.sort === "best") list.sort((x, y) => swingOf(D.boards[y]) - swingOf(D.boards[x]) || x - y);
+  const at = keepN == null ? -1 : list.findIndex((i) => D.boards[i].n === keepN);
+  pos = at >= 0 ? at : 0;
+  renderList();
+}
+function current() { return list.length ? D.boards[list[pos]] : null; }
+function go(p) {
+  if (!list.length) return render();
+  pos = Math.max(0, Math.min(list.length - 1, p));
+  const n = current().n;
+  if (location.hash !== "#" + n) history.replaceState(null, "", "#" + n);
+  render();
+}
+function goBoard(n) {
+  let at = list.findIndex((i) => D.boards[i].n === n);
+  if (at < 0 && D.boards.some((b) => b.n === n)) {  // filtered out: drop the filter to show it
+    S.minSwing = 0; $("minswing").value = 0; save(); rebuild(n); at = pos;
+  }
+  if (at < 0) { flash(`board ${n} is not in this file (boards ${D.boards[0].n}–${D.boards[D.boards.length - 1].n})`); return; }
+  go(at);
+}
+function flash(msg) {
+  $("counter").innerHTML = `<span class="err">${esc(msg)}</span>`;
+  setTimeout(() => { if (!bidding) render(); }, 2500);  // never leave a bidding session
+}
+function renderList() {
+  $("list").innerHTML = list.map((i, k) => {
+    const b = D.boards[i], s = swingOf(b);
+    return `<a href="#${b.n}" data-k="${k}" class="${k === pos ? "cur" : ""}"><span>Board ${b.n}</span>` +
+      `<span class="${cls(s)}">${signed(s)}</span></a>`;
+  }).join("") || '<div class="note" style="padding:8px 12px">no boards</div>';
+}
+function render() {
+  bidding = null;
+  const b = current();
+  ["first", "prev"].forEach((id) => ($(id).disabled = pos <= 0 || !b));
+  ["next", "last"].forEach((id) => ($(id).disabled = pos >= list.length - 1 || !b));
+  $("bidbtn").disabled = !b;
+  $("counter").textContent = b ? `Board ${b.n} · ${pos + 1} of ${list.length}` : `0 of 0`;
+  document.querySelectorAll("#list a").forEach((a) => a.classList.toggle("cur", Number(a.dataset.k) === pos));
+  const cur = document.querySelector("#list a.cur");
+  if (cur) cur.scrollIntoView({ block: "nearest" });
+  if (!b) { $("view").innerHTML = '<div class="empty">No board has a swing that large.</div>'; return; }
+  const total = b.pairs.reduce((t, p) => t + p.imps, 0);
+  let h = '<div class="top">' + dealHTML(b) + (S.dd ? ddHTML(b) : "") +
+    `<div class="card summary"><div class="note">Dealer ${SEATS[b.dealer]} · Vul ${vulText(b.vul)}</div>` +
+    `<div class="note">${esc(D.model)}, IMPs on this board</div>` +
+    `<div class="big ${cls(total)}">${signed(total)}</div><div class="note">total over ${b.pairs.length} opponents</div>` +
+    b.pairs.map((p, i) => `<div>${esc(D.opponents[i])}: <b class="${cls(p.imps)}">${signed(p.imps)}</b></div>`).join("") +
+    "</div></div>";
+  h += '<div class="pairs">' + b.pairs.map((p, i) => pairHTML(b, p, i)).join("") + "</div>";
+  $("view").innerHTML = h;
+}
+function pairHTML(b, p, i) {
+  const opp = D.opponents[i];
+  const t = p.tables.map((tb, k) => {
+    const side = k === 0 ? 0 : 1;  // model's side: table 1 NS, table 2 EW
+    const mine = (j) => (b.dealer + j) % 2 === side;
+    const cap = k === 0 ? `Table 1 · ${esc(D.model)} NS · ${esc(opp)} EW` : `Table 2 · ${esc(opp)} NS · ${esc(D.model)} EW`;
+    return `<div class="tbl"><div class="cap">${cap}</div>` +
+      auctionHTML(b.dealer, tb.calls, mine, S.probs && tb.probs ? (j) => tb.probs[j] : null, (s) => s % 2 === side) +
+      `<div class="contract">${contractHTML(tb.contract)}</div></div>`;
+  }).join("");
+  return `<div class="card pair"><h3>vs ${esc(opp)} <span class="imp ${cls(p.imps)}">${signed(p.imps)} IMPs</span></h3>` +
+    `<div class="tables">${t}</div></div>`;
+}
+
+// ---------- bidding mode (served pages only) ----------
+async function api(req) {
+  const r = await fetch("/api/bid", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req) });
+  const out = await r.json();
+  if (!r.ok) throw new Error(out.error || r.statusText);
+  return out;
+}
+function bidSetup() {
+  const b = current();
+  bidding = { board: list[pos], seat: bidding && bidding.seat != null ? bidding.seat : 2,
+    opp: bidding && bidding.opp != null ? bidding.opp : Math.max(0, D.opponents.indexOf("rule-bot")), state: null };
+  renderBid();
+}
+function optsHTML() {
+  const t = (k, label) => `<label class="toggle"><input type="checkbox" data-opt="${k}" ${S[k] ? "checked" : ""}> ${label}</label>`;
+  return `<div class="choice">${t("hide", "only my hand while bidding")}${t("hints", "bot hints (model in my seat)")}` +
+    `${t("reasons", "bots' reasons live")}${t("hcp", "HCP")}${t("dd", "DD table at the end")}</div>`;
+}
+function renderBid() {
+  const B = bidding, b = D.boards[B.board];
+  const partner = (B.seat + 2) % 4;
+  let h = `<div class="card"><h3 style="margin:0 0 6px">Bid board ${b.n}</h3>`;
+  if (!B.state) {
+    h += '<div class="note">Your seat (the model is your partner)</div><div class="choice">' +
+      [0, 1, 2, 3].map((s) => `<button class="btn ${s === B.seat ? "on" : ""}" data-seat="${s}">${SEATS[s]}</button>`).join("") +
+      '</div><div class="note">Opponents</div><div class="choice">' +
+      D.opponents.map((o, i) => `<button class="btn ${i === B.opp ? "on" : ""}" data-opp="${i}">${esc(o)}</button>`).join("") +
+      "</div>" + optsHTML() +
+      '<button class="btn primary" id="startbid">Start</button> <button class="btn" id="back">Back to viewer</button>' +
+      (B.error ? `<p class="err">${esc(B.error)}</p>` : "") + "</div>";
+    $("view").innerHTML = h;
+    return;
+  }
+  const st = B.state, done = st.done;
+  const labels = [0, 1, 2, 3].map((s) => s === B.seat ? "you" : s === partner ? D.model : D.opponents[B.opp]);
+  h += `<div class="note">You ${SEATS[B.seat]} · partner ${esc(D.model)} · opponents ${esc(D.opponents[B.opp])} · ` +
+    `Dealer ${SEATS[b.dealer]} · Vul ${vulText(b.vul)}</div>` + optsHTML() + "</div>";
+  const hide = !done && S.hide ? (s) => s !== B.seat : null;
+  h += '<div class="top" style="margin-top:12px">' + dealHTML(b, { hide, labels }) + (done && S.dd ? ddHTML(b) : "");
+  const isMine = (j) => (b.dealer + j) % 4 === B.seat;
+  h += '<div class="card"><div class="cap note">Auction</div>' +
+    auctionHTML(b.dealer, st.calls, (j) => !isMine(j), S.reasons ? (j) => st.probs[j] : null, (s) => s === B.seat);
+  if (done) {
+    const r = st.result, mt = b.pairs[B.opp].tables[r.model_table];
+    h += `<div class="contract">${contractHTML(r.contract)}</div></div>` +
+      `<div class="card summary"><div class="note">you vs ${esc(D.model)}'s auction (same seats, same opponents)</div>` +
+      `<div class="big ${cls(r.imps)}">${signed(r.imps)} IMPs</div>` +
+      `<div class="note">${esc(D.model)}'s table ${r.model_table + 1}</div>` +
+      auctionHTML(b.dealer, mt.calls, null, null, (s) => s % 2 === B.seat % 2) +
+      `<div class="contract">${contractHTML(mt.contract)}</div></div>`;
+  } else {
+    h += '<div class="note" style="margin-top:8px">Your call</div><div class="bidbox">';
+    for (let lv = 1; lv <= 7; lv++) for (let s = 0; s < 5; s++) {
+      const a = 3 + 5 * (lv - 1) + s;
+      h += `<button data-call="${a}" ${st.legal[a] ? "" : "disabled"}>${callHTML(a)}</button>`;
+    }
+    h += '<div class="row3">' + [0, 1, 2].map((a) => `<button data-call="${a}" ${st.legal[a] ? "" : "disabled"}>${callText(a)}</button>`).join("") +
+      "</div></div>";
+    if (S.hints) h += `<div class="note" style="margin-top:8px">${esc(D.model)} would bid: ${st.hint ? probsHTML(st.hint) : "(no probabilities for this policy)"}</div>`;
+    h += "</div>";
+  }
+  h += "</div>";
+  h += '<div style="margin-top:12px" class="group"><button class="btn" id="undo">Undo my last call</button>' +
+    '<button class="btn" id="restart">Restart</button><button class="btn" id="setup">Change seat / opponents</button>' +
+    '<button class="btn" id="back">Back to viewer</button></div>' + (B.error ? `<p class="err">${esc(B.error)}</p>` : "");
+  $("view").innerHTML = h;
+}
+async function send(calls) {
+  const B = bidding;
+  try {
+    B.state = await api({ board: B.board, seat: B.seat, opp: B.opp, calls });
+    B.error = null;
+  } catch (e) { B.error = String(e.message || e); }
+  if (bidding === B) renderBid();
+}
+$("view").addEventListener("click", (ev) => {
+  const t = ev.target.closest("button");
+  if (!t || !bidding) return;
+  const B = bidding, b = D.boards[B.board];
+  if (t.dataset.seat != null) { B.seat = Number(t.dataset.seat); renderBid(); }
+  else if (t.dataset.opp != null) { B.opp = Number(t.dataset.opp); renderBid(); }
+  else if (t.dataset.call != null) send(B.state.calls.concat([Number(t.dataset.call)]));
+  else if (t.id === "startbid" || t.id === "restart") send([]);
+  else if (t.id === "setup") { B.state = null; renderBid(); }
+  else if (t.id === "back") render();
+  else if (t.id === "undo") {
+    const calls = B.state.calls;
+    let j = calls.length - 1;
+    while (j >= 0 && (b.dealer + j) % 4 !== B.seat) j--;
+    send(j >= 0 ? calls.slice(0, j) : []);
+  }
+});
+$("view").addEventListener("change", (ev) => {
+  const k = ev.target.dataset.opt;
+  if (!k) return;
+  S[k] = ev.target.checked; save();
+  if (k === "hcp" || k === "dd") syncControls();
+  if (bidding) renderBid();
+});
+
+// ---------- wiring ----------
+function syncControls() {
+  $("swing").value = S.swing; $("minswing").value = S.minSwing; $("sort").value = S.sort;
+  $("t-probs").checked = S.probs; $("t-dd").checked = S.dd; $("t-hcp").checked = S.hcp;
+}
+function init() {
+  $("title").textContent = `${D.model} · boards`;
+  const last = D.boards.length ? D.boards[D.boards.length - 1].n : 0;
+  $("subtitle").textContent = `${D.split} boards ${D.boards.length ? D.boards[0].n : 0}–${last} · duplicate vs ` +
+    `${D.opponents.join(", ")} · seed ${D.seed}`;
+  document.title = `${D.model} · boards`;
+  $("swing").innerHTML = '<option value="total">total (all opponents)</option>' +
+    D.opponents.map((o) => `<option value="${esc(o)}">vs ${esc(o)}</option>`).join("");
+  if (!D.opponents.includes(S.swing)) S.swing = "total";
+  syncControls();
+  if (!D.serve) $("bidgroup").classList.add("hidden-el");
+  const fromHash = Number(location.hash.slice(1));
+  rebuild(fromHash || null);
+  if (fromHash) goBoard(fromHash); else go(0);
+}
+$("first").onclick = () => go(0);
+$("last").onclick = () => go(list.length - 1);
+$("prev").onclick = () => go(pos - 1);
+$("next").onclick = () => go(pos + 1);
+$("jumpform").onsubmit = (e) => { e.preventDefault(); const n = Number($("jump").value); if (n) goBoard(n); };
+$("list").addEventListener("click", (e) => {
+  const a = e.target.closest("a"); if (!a) return;
+  e.preventDefault(); go(Number(a.dataset.k));
+});
+$("swing").onchange = () => { S.swing = $("swing").value; save(); const b = current(); rebuild(b && b.n); go(pos); };
+$("minswing").oninput = () => { S.minSwing = Math.max(0, Number($("minswing").value) || 0); save(); const b = current(); rebuild(b && b.n); go(pos); };
+$("sort").onchange = () => { S.sort = $("sort").value; save(); const b = current(); rebuild(b && b.n); go(pos); };
+for (const [id, k] of [["t-probs", "probs"], ["t-dd", "dd"], ["t-hcp", "hcp"]]) {
+  $(id).onchange = () => { S[k] = $(id).checked; save(); if (bidding) renderBid(); else render(); };
+}
+$("bidbtn").onclick = () => { if (current()) bidSetup(); };
+window.addEventListener("hashchange", () => {
+  const n = Number(location.hash.slice(1));
+  if (n && (!current() || current().n !== n)) goBoard(n);
+});
+document.addEventListener("keydown", (e) => {
+  if (bidding || e.target.matches("input:not([type=checkbox]), select, textarea") || e.metaKey || e.ctrlKey ||
+    e.altKey) return;
+  if (e.key === "ArrowLeft") { e.preventDefault(); go(pos - 1); }
+  if (e.key === "ArrowRight") { e.preventDefault(); go(pos + 1); }
+});
+init();
+</script>
+</body>
+</html>

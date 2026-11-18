@@ -53,14 +53,20 @@ class MatchResult:
 
 
 def play(state: core.State, policy_for_ns: mx.array, a: Policy, b: Policy, key: mx.array,
-         max_plies: int = 320) -> core.State:
-    """Play every deal to the end. policy_for_ns [N] bool: True -> A plays NS (B plays EW), else reversed."""
+         max_plies: int = 320, on_step=None) -> core.State:
+    """Play every deal to the end. policy_for_ns [N] bool: True -> A plays NS (B plays EW), else reversed.
+
+    `on_step(state, obs, mask, a_turn)`, if given, is called before every call (viewers use it to record A's
+    probabilities); it must not change the state.
+    """
     step = mx.compile(core.step)
     for ply in range(max_plies):
         key, ka, kb = mx.random.split(key, 3)
         obs, mask = core.observe(state), core.legal_mask(state)
         a_turn = ((core.current_seat(state) % 2) == 0) == policy_for_ns
         act = mx.where(a_turn, a.act(state, obs, mask, ka), b.act(state, obs, mask, kb))
+        if on_step is not None:
+            on_step(state, obs, mask, a_turn)
         state = step(state, act)
         if ply % 8 == 7 and mx.all(state["done"]).item():
             break

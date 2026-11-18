@@ -4,7 +4,8 @@
   bridgebid baselines                     download + port the 5 brl reference bots (~75 MB)
   bridgebid ladder [--boards N]           duplicate matrix of the baselines
   bridgebid eval POLICY [--boards N]      POLICY vs the ladder (+ diagnostics)
-  bridgebid show [--ns P] [--ew P]        print boards with auctions
+  bridgebid show POLICY [--serve]         HTML board viewer: POLICY vs the ladder, every board
+  bridgebid show --terminal [--ns P] [--ew P]   print boards with auctions
   bridgebid train CONFIG [k=v ...] [--hours H]   train (ppo / es) from a YAML config, with overrides
   bridgebid resume RUN_DIR [--hours H]           continue a run from its last checkpoint
 
@@ -61,12 +62,58 @@ def cmd_eval(args) -> None:
 
 
 def cmd_show(args) -> None:
-    from bridgebid.cli.viewer import show_boards
-    from bridgebid.policies.base import load
+    if args.terminal:
+        from bridgebid.cli.viewer import show_boards
+        from bridgebid.policies.base import load
 
-    ns = load(args.ns)
-    ew = ns if args.ew is None else load(args.ew)
-    show_boards(ns, ew, _bank(args.split), start=args.start, n=args.boards)
+        ns = load(args.ns or args.policy or "brl:sl")
+        ew = ns if args.ew is None else load(args.ew)
+        show_boards(ns, ew, _bank(args.split), start=args.start, n=3 if args.boards is None else args.boards)
+        return
+    if args.policy is None:
+        sys.exit("bridgebid show: POLICY is required (or use --terminal)")
+    _show_html(args)
+
+
+def _show_html(args) -> None:
+    import time
+    import webbrowser
+    from pathlib import Path
+
+    from bridgebid.eval.ladder import DEFAULT_LADDER, available
+    from bridgebid.policies.base import load
+    from bridgebid.ui.boards import build_board_data, default_out, render_html
+
+    t0 = time.perf_counter()
+    bank = _bank(args.split)
+    model = load(args.policy)
+    specs = available(args.opponents or DEFAULT_LADDER)
+    opponents = [load(s) for s in specs]
+    n = 200 if args.boards is None else args.boards
+    data = build_board_data(model, opponents, bank, start=args.start, n=n, seed=args.seed)
+    if args.serve:
+        from bridgebid.ui.server import make_server
+
+        server = make_server(model, opponents, bank, data, port=args.port, seed=args.seed)
+        url = f"http://127.0.0.1:{server.server_address[1]}/"
+        print(f"{n} boards vs {', '.join(o.name for o in opponents)} in {time.perf_counter() - t0:.1f}s")
+        print(f"serving {url}  (Ctrl-C to stop)")
+        if not args.no_open:
+            webbrowser.open(url)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            server.server_close()
+        return
+    out = Path(args.out) if args.out else default_out(args.policy, model.name)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_html(data), encoding="utf-8")
+    print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB, {n} boards vs {', '.join(o.name for o in opponents)}) "
+          f"in {time.perf_counter() - t0:.1f}s")
+    if not args.no_open:
+        webbrowser.open(out.resolve().as_uri())
 
 
 def cmd_train(args) -> None:
@@ -101,12 +148,20 @@ def main(argv: list[str] | None = None) -> None:
     q.add_argument("--opponents", nargs="*")
     q.add_argument("--boards", type=int, default=10_000)
     q.set_defaults(fn=cmd_eval)
-    q = sub.add_parser("show")
-    q.add_argument("--ns", default="brl:sl")
-    q.add_argument("--ew")
-    q.add_argument("--boards", type=int, default=3)
+    q = sub.add_parser("show", help="HTML board viewer (or --terminal)")
+    q.add_argument("policy", nargs="?", help="the model to show (HTML viewer)")
+    q.add_argument("--terminal", action="store_true", help="print boards in the terminal (uses --ns / --ew)")
+    q.add_argument("--ns", help="terminal: North-South policy (default brl:sl)")
+    q.add_argument("--ew", help="terminal: East-West policy (default: same as --ns)")
+    q.add_argument("--opponents", nargs="*", help="HTML: opponents (default: the full ladder)")
+    q.add_argument("--boards", type=int, help="number of boards (default 200 in HTML, 3 in the terminal)")
     q.add_argument("--start", type=int, default=0)
     q.add_argument("--split", default="eval")
+    q.add_argument("--seed", type=int, default=0, help="HTML: duplicate seed (as in evaluation)")
+    q.add_argument("--out", help="HTML file (default runs/<run>/boards.html or runs/viewer/<name>.html)")
+    q.add_argument("--serve", action="store_true", help="serve on localhost with a 'Bid this board' mode")
+    q.add_argument("--port", type=int, default=8765)
+    q.add_argument("--no-open", action="store_true", help="do not open the browser")
     q.set_defaults(fn=cmd_show)
     q = sub.add_parser("train")
     q.add_argument("config")

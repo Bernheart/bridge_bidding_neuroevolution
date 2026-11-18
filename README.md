@@ -109,8 +109,25 @@ uv sync                                   # Python 3.12 env with MLX
 uv run bridgebid data                     # download + check the DD dataset (~420 MB)
 uv run bridgebid baselines                # download + port the reference bots (~75 MB)
 uv run bridgebid ladder --boards 10000    # baseline matrix
-uv run bridgebid show --ns brl:pretrained-rl-with-fsp --ew rule --boards 3
+uv run bridgebid show --terminal --ns brl:pretrained-rl-with-fsp --ew rule --boards 3
 ```
+
+**Board viewer.** `bridgebid show POLICY` plays 200 fixed eval boards in duplicate against the whole ladder
+(the same IMPs as `bridgebid eval`) and writes one self-contained HTML page (a few seconds, under 1 MB), then
+opens it: the deal with HCP, the double-dummy table, the 14 auctions of every board with contract, DD result,
+score and IMPs, and the model's top-3 calls with probabilities. ← / → step through the boards; boards can be
+filtered by swing (total or against one opponent) and sorted worst/best first; `#37` in the URL keeps the place.
+
+```bash
+uv run bridgebid show runs/<run_dir>/ckpt/policy.safetensors          # -> runs/<run_dir>/boards.html
+uv run bridgebid show brl:sl --boards 500 --start 1000 --opponents rule brl:pretrained-rl --out sl.html
+uv run bridgebid show runs/<run_dir>/ckpt/policy.safetensors --serve  # + "Bid this board" on localhost
+```
+
+With `--serve` the page also lets you bid any board yourself with the model as partner against an opponent
+from the ladder: only legal calls are offered, the result is scored double-dummy and compared in IMPs with the
+model's own auction at that table. Hidden hands, the model's hint for your seat and the bots' probabilities
+are switches in the page. The server listens on 127.0.0.1 only.
 
 Training (every run writes `runs/<date>_<trainer>_<name>/` with config, metrics, TensorBoard, checkpoints):
 
@@ -149,6 +166,7 @@ bridgebid/  constants, cards, scoring, config
   trainers/   ppo, es, common
   tracking/   run directories, JSONL, TensorBoard
   cli/        bridgebid command, terminal viewer
+  ui/         HTML board viewer, localhost bidding server
 configs/  scripts/ (bench_mlx, make_fixtures, port_brl)  tests/  legacy/
 ```
 
@@ -157,7 +175,8 @@ configs/  scripts/ (bench_mlx, make_fixtures, port_brl)  tests/  legacy/
 * **M3/M4** long PPO and ES runs (overnight on the M2), with ablations: curriculum on/off, privileged vs shared
   critic, network size.
 * **M5** ES vs PPO at equal wall-clock: learning curves, ladder table, 100K-board head-to-head, write-up.
-* **M6** `bridgebid play`: take any seat in the terminal, see the bot's probabilities; later a small web page.
+* **M6** board viewer and bidding with the model as partner (`bridgebid show`, done); next: fresh random deals,
+  saving your own auctions.
 * **M7** imitation then RL: OpenSpiel's WBridge5 SAYC data, and **Polish Club (WJ)** from BEN's robot-bid data
   (GPL; data only). Then system design: read the learned system card, pin chosen openings, "update our system".
 
