@@ -194,3 +194,11 @@ cython_debug/
 /models/
 # results/: keep small JSON summaries, not checkpoints
 /results/*.safetensors
+
+# claude-kit:begin
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/.kit/
+.kit/
+.claude/worktrees/
+# claude-kit:end

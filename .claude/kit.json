@@ -1,0 +1,26 @@
+{
+  "kitVersion": "0.19.0",
+  "profile": "solo",
+  "modifiers": [],
+  "decidedBy": "user-confirmed",
+  "commands": {
+    "test": "uv run pytest",
+    "lint": "uv run ruff check .",
+    "format": "uv run ruff format .",
+    "done": "uv run ruff check . && uv run pytest"
+  },
+  "formatOnEdit": false,
+  "protected": [
+    ".env*",
+    "uv.lock",
+    ".git/",
+    ".claude/hooks/**"
+  ],
+  "riskGlobs": [],
+  "blocks": {
+    "CLAUDE.md#commands": "96e08d7e",
+    "CLAUDE.md#done": "b1a60dfd"
+  },
+  "appliedAt": "2026-11-18",
+  "claudeCodeTested": "2.1.318"
+}
