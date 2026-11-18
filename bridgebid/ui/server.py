@@ -123,15 +123,34 @@ def make_handler(page: str, engine: BidEngine):
             self.end_headers()
             self.wfile.write(payload)
 
+        def _local_only(self) -> bool:
+            """Refuse requests not addressed to this server by name (DNS rebinding) or sent from another site
+            (cross-site POSTs). JSON-only POSTs also force a CORS preflight, which this server never grants."""
+            port = self.server.server_address[1]
+            local = {f"127.0.0.1:{port}", f"localhost:{port}"}
+            origin = self.headers.get("Origin")
+            if self.headers.get("Host") not in local or (origin is not None and origin.removeprefix("http://")
+                                                         not in local):
+                self._send(403, b"forbidden", "text/plain")
+                return False
+            return True
+
         def do_GET(self):  # noqa: N802
+            if not self._local_only():
+                return
             if self.path.split("#")[0].split("?")[0] in ("/", "/index.html"):
                 self._send(200, body, "text/html; charset=utf-8")
             else:
                 self._send(404, b"not found", "text/plain")
 
         def do_POST(self):  # noqa: N802
+            if not self._local_only():
+                return
             if self.path != "/api/bid":
                 self._send(404, b"not found", "text/plain")
+                return
+            if self.headers.get_content_type() != "application/json":
+                self._send(415, b"send application/json", "text/plain")
                 return
             try:
                 req = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")

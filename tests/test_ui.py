@@ -156,10 +156,22 @@ def test_server_localhost(data, model, opponents, bank):
             {"board": 1, "seat": 0, "opp": 1, "calls": []}).encode(), headers={"Content-Type": "application/json"})
         out = json.loads(urllib.request.urlopen(req).read())
         assert "calls" in out and "done" in out
-        bad = urllib.request.Request(base + "/api/bid", data=b'{"board": 99, "seat": 0, "opp": 0}')
+        body = b'{"board": 99, "seat": 0, "opp": 0}'
+        json_ct = {"Content-Type": "application/json"}
+        port = srv.server_address[1]
+        for headers, code in [
+            (json_ct, 400),  # bad board
+            ({}, 415),  # not JSON: a cross-site "simple" POST
+            ({**json_ct, "Origin": "https://evil.example"}, 403),  # another site
+            ({**json_ct, "Host": f"evil.example:{port}"}, 403),  # DNS rebinding
+            ({**json_ct, "Origin": f"http://localhost:{port}", "Host": f"localhost:{port}"}, 400),  # allowed
+        ]:
+            with pytest.raises(urllib.error.HTTPError) as e:
+                urllib.request.urlopen(urllib.request.Request(base + "/api/bid", data=body, headers=headers))
+            assert e.value.code == code, headers
         with pytest.raises(urllib.error.HTTPError) as e:
-            urllib.request.urlopen(bad)
-        assert e.value.code == 400
+            urllib.request.urlopen(urllib.request.Request(base + "/", headers={"Host": "evil.example"}))
+        assert e.value.code == 403
     finally:
         srv.shutdown()
         srv.server_close()
