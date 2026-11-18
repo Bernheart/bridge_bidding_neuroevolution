@@ -1,0 +1,9 @@
+{
+  "config": {
+    "width": 256,
+    "depth": 2,
+    "value_head": false,
+    "in_dim": 480
+  },
+  "generation": 180
+}

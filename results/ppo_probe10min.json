@@ -1,0 +1,10 @@
+{
+  "config": {
+    "width": 512,
+    "depth": 4,
+    "value_head": false,
+    "in_dim": 480
+  },
+  "update": 111,
+  "steps": 32735232
+}

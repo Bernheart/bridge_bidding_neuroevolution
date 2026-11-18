@@ -192,3 +192,5 @@ cython_debug/
 /data/
 /runs/
 /models/
+# results/: keep small JSON summaries, not checkpoints
+/results/*.safetensors

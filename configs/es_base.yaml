@@ -1,0 +1,14 @@
+# OpenAI-ES on a 480-256-256-38 policy. Population evaluated as one batched matmul per call.
+trainer: es
+name: base
+seed: 0
+es:
+  population: 512
+  boards: 512
+  chunk: 64
+  sigma: 0.02
+  lr: 0.01
+  width: 256
+  depth: 2
+  generations: 3000
+  warmup_generations: 300

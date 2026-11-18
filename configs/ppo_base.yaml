@@ -1,0 +1,18 @@
+# PPO self-play from scratch, 4x512 actor + privileged critic. ~1B env steps is roughly one long night on an M2.
+trainer: ppo
+name: base
+seed: 0
+ppo:
+  num_envs: 8192
+  rollout_len: 32
+  epochs: 4
+  minibatch: 16384
+  lr: 1.0e-4
+  width: 512
+  depth: 4
+  critic: privileged
+  total_steps: 1000000000
+  passive_until: 50000000
+  passive_anneal: 50000000
+  eval_every: 25
+  eval_boards: 4000
