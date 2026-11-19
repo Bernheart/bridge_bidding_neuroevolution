@@ -29,7 +29,7 @@ If you could not run it, say so instead of reporting success.
   keep shapes static and don't branch in Python on array values there. `bridgebid/env/reference.py` is the
   readable spec it is tested against; a rule change goes in both.
 - Compiled functions that close over a model pass its state, e.g. `mx.compile(f, inputs=[model.state])`
-  (see `policies/base.py`, `trainers/ppo.py`); otherwise they keep using stale weights.
+  (see `bridgebid/policies/base.py`, `bridgebid/trainers/ppo.py`); otherwise they keep using stale weights.
 - Randomness uses explicit keys (`mx.random.key(seed)`, then `mx.random.split`). Resume is bit-exact and
   tested, so don't add unseeded or global randomness to trainers.
 - `uv run bridgebid train <config> --smoke` is the 1-minute end-to-end check. Start longer runs (`--hours`)
