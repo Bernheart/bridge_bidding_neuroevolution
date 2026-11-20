@@ -67,7 +67,7 @@ P(call)        = softmax(score / T) over legal calls
 
 - [ ] `load("weighted")` returns a `Policy` named `weighted-random`; `load("weighted:<file>.json")` loads
       weights from that file.
-- [ ] `"weighted"` is in `DEFAULT_LADDER` (between `random` and `pass`); `bridgebid ladder`, `eval` and `show`
+- [ ] `"weighted"` is in `DEFAULT_LADDER` (first, then `weighted-tuned`; `random` was dropped from the ladder on 20 Nov 2026); `bridgebid ladder`, `eval` and `show`
       include it without other changes.
 - [ ] Over 60 calls on 512 eval deals it only makes legal calls.
 - [ ] Same state and key → identical calls, for a batch of 512 and for batch size 1.
@@ -91,7 +91,7 @@ P(call)        = softmax(score / T) over legal calls
 - `bridgebid/policies/base.py`: `load()` handles `weighted` and `weighted:<path>`; docstring updated.
 - `bridgebid/policies/rule_bot.py`: only if `auction_features` needs extra fields (e.g. every strain partner /
   opponents bid, their highest level); existing fields unchanged.
-- `bridgebid/eval/ladder.py`: add `"weighted"` to `DEFAULT_LADDER`.
+- `bridgebid/eval/ladder.py`: `"weighted"` and `"weighted-tuned"` replace `"random"` in `DEFAULT_LADDER`.
 - `scripts/tune_weighted.py` (new): ES tuning against the rule bot on train deals, `--minutes`, `--seed`,
   `--out` (default `results/weighted_tuned.json`).
 - `tests/test_weighted_random.py` (new): legality, reproducibility, hand examples, tuning smoke; the 10,000-board

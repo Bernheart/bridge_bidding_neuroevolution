@@ -38,11 +38,14 @@ cancels. Reported as mean ± standard error. The ladder:
 
 | opponent | what it is |
 |---|---|
-| random | uniformly random legal calls |
-| weighted | a weighted random bot (`policies/weighted_random.py`): each legal call gets a score from ~12 weights × a few features (suit lengths, points, a target level from partner's and the opponents' bids), then softmax sampling; natural calls only. `weighted:<file.json>` loads other (e.g. tuned) weights |
+| weighted | a weighted random bot (`policies/weighted_random.py`): each legal call gets a score from ~12 weights × a few features (suit lengths, points, a target level from partner's and the opponents' bids), then softmax sampling; natural calls only. Hand-picked weights; `weighted:<file.json>` loads others |
+| weighted-tuned | the same bot with ES-tuned weights ([`results/weighted_tuned.json`](results/weighted_tuned.json)): the low bar a network must clear to show it learned any bidding |
 | pass | always passes |
 | rule | a hand-written natural system (`policies/rule_bot.py`): 15–17 1NT, 5-card majors, weak twos, raises, overcalls, takeout doubles |
 | brl:* | the five published models of Kita et al. 2024 (Pgx + PPO), ported to MLX; their scores vs WBridge5 are published, which puts our numbers on a real scale |
+
+Uniformly random calls (`random`) are still loadable but no longer in the default ladder: they end in nonsense
+7-level contracts, so beating them says nothing; the weighted bots replaced them.
 
 Diagnostics catch collapse early (pass-out rate, share of the most common opening, distinct auctions) and
 print a "system card": what the dealer opens with each HCP range.
@@ -154,13 +157,14 @@ uv run bridgebid eval runs/<run_dir>/ckpt/policy.safetensors   # ladder + system
 Ctrl-C saves a checkpoint, so the Mac can be handed back at any time. Config values can be overridden on the
 command line, e.g. `ppo.lr=3e-5 ppo.critic=shared`.
 
-The weighted random bot's weights are tuned by a small (1+λ)-ES against the rule bot on train deals
-(`--minutes` is turned into a fixed generation count, so the same seed gives the same JSON):
+The weighted random bot's weights are tuned by a small (μ/μ_w, λ)-ES against brl FSP, brl SL and the rule bot on
+train deals (`--minutes` is turned into a fixed generation count, so the same seed gives the same JSON). The default
+`--out` is the file `weighted-tuned` loads, so a new run replaces the ladder's tuned bot:
 
 ```bash
 uv run python scripts/tune_weighted.py --minutes 1 --seed 0 --out runs/weighted_smoke.json   # smoke
 uv run python scripts/tune_weighted.py --minutes 60 --seed 0           # -> results/weighted_tuned.json
-uv run bridgebid ladder weighted weighted:results/weighted_tuned.json random pass rule --boards 10000
+uv run bridgebid ladder weighted weighted-tuned random pass rule --boards 10000
 ```
 
 ## Tests

@@ -68,8 +68,14 @@ def test_load_specs(tmp_path):
 def test_in_default_ladder():
     from bridgebid.eval.ladder import DEFAULT_LADDER
 
-    i = DEFAULT_LADDER.index("weighted")
-    assert DEFAULT_LADDER[i - 1] == "random" and DEFAULT_LADDER[i + 1] == "pass"
+    assert DEFAULT_LADDER[:3] == ["weighted", "weighted-tuned", "pass"]
+    assert "random" not in DEFAULT_LADDER  # replaced by the weighted bots
+
+
+def test_weighted_tuned_loads_the_committed_weights():
+    pol = load("weighted-tuned")
+    assert isinstance(pol, WeightedRandom) and pol.name == "weighted-tuned"
+    assert pol.weights == load_weights("results/weighted_tuned.json") != Weights()
 
 
 def test_only_legal_calls():

@@ -50,9 +50,12 @@ class NeuralPolicy(Policy):
         return mx.random.categorical(logits / self.temperature, key=key).astype(mx.int32)
 
 
+TUNED_WEIGHTS = Path(__file__).resolve().parents[2] / "results" / "weighted_tuned.json"
+
+
 def load(spec: str) -> Policy:
-    """'pass' | 'random' | 'rule' | 'weighted' | 'weighted:<weights.json>' | 'brl:<name>' | path to a
-    .safetensors policy checkpoint."""
+    """'pass' | 'random' | 'rule' | 'weighted' | 'weighted-tuned' | 'weighted:<weights.json>' | 'brl:<name>' |
+    path to a .safetensors policy checkpoint. 'weighted-tuned' = the committed ES-tuned weights."""
     from bridgebid.models.io import load_policy
     from bridgebid.policies.rule_bot import RuleBot
     from bridgebid.policies.weighted_random import WeightedRandom, load_weights
@@ -65,6 +68,8 @@ def load(spec: str) -> Policy:
         return RuleBot()
     if spec in ("weighted", "weighted-random"):
         return WeightedRandom()
+    if spec == "weighted-tuned":
+        return WeightedRandom(load_weights(TUNED_WEIGHTS), name="weighted-tuned")
     if spec.startswith("weighted:"):
         path = Path(spec[len("weighted:"):])
         return WeightedRandom(load_weights(path), name=spec)  # the path keeps different files apart
