@@ -51,9 +51,11 @@ class NeuralPolicy(Policy):
 
 
 def load(spec: str) -> Policy:
-    """'pass' | 'random' | 'rule' | 'brl:<name>' | path to a .safetensors policy checkpoint."""
+    """'pass' | 'random' | 'rule' | 'weighted' | 'weighted:<weights.json>' | 'brl:<name>' | path to a
+    .safetensors policy checkpoint."""
     from bridgebid.models.io import load_policy
     from bridgebid.policies.rule_bot import RuleBot
+    from bridgebid.policies.weighted_random import WeightedRandom, load_weights
 
     if spec in ("pass", "always-pass"):
         return AlwaysPass()
@@ -61,6 +63,11 @@ def load(spec: str) -> Policy:
         return RandomLegal()
     if spec in ("rule", "rule-bot"):
         return RuleBot()
+    if spec in ("weighted", "weighted-random"):
+        return WeightedRandom()
+    if spec.startswith("weighted:"):
+        path = Path(spec[len("weighted:"):])
+        return WeightedRandom(load_weights(path), name=spec)  # the path keeps different files apart
     if spec.startswith("brl:"):
         name = spec[4:]
         name = name if name.startswith("model-") else f"model-{name}"

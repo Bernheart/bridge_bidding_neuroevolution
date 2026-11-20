@@ -62,6 +62,10 @@ def auction_features(s) -> dict[str, np.ndarray]:
         pos = width - 1 - m[:, ::-1].argmax(1)
         return np.where(m.any(1), calls[ar, pos], -1)
 
+    def strains(m):  # [n, 5] bool: strains bid in the calls selected by m
+        st = np.where(m, (calls - 3) % 5, 5)
+        return (st[:, :, None] == np.arange(5)[None, None, :]).any(1)
+
     opening, opener_rel = first(isbid)
     return {
         "ar": ar, "H": hcp(hand), "L": lengths, "bal": is_balanced(lengths),
@@ -70,6 +74,10 @@ def auction_features(s) -> dict[str, np.ndarray]:
         "partner_last": last(valid & (rel == 2)),
         "my_bids": (isbid & (rel == 0)).sum(1), "partner_bids": (isbid & (rel == 2)).sum(1),
         "opp_bid": (isbid & (rel % 2 == 1)).any(1),
+        # extra fields for the weighted random bot
+        "partner_strains": strains(isbid & (rel == 2)), "opp_strains": strains(isbid & (rel % 2 == 1)),
+        "partner_passes": (valid & (rel == 2) & (calls == PASS)).sum(1),
+        "partner_x": (valid & (rel == 2) & (calls == X)).any(1),
     }
 
 

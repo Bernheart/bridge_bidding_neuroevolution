@@ -39,6 +39,7 @@ cancels. Reported as mean ± standard error. The ladder:
 | opponent | what it is |
 |---|---|
 | random | uniformly random legal calls |
+| weighted | a weighted random bot (`policies/weighted_random.py`): each legal call gets a score from ~12 weights × a few features (suit lengths, points, a target level from partner's and the opponents' bids), then softmax sampling; natural calls only. `weighted:<file.json>` loads other (e.g. tuned) weights |
 | pass | always passes |
 | rule | a hand-written natural system (`policies/rule_bot.py`): 15–17 1NT, 5-card majors, weak twos, raises, overcalls, takeout doubles |
 | brl:* | the five published models of Kita et al. 2024 (Pgx + PPO), ported to MLX; their scores vs WBridge5 are published, which puts our numbers on a real scale |
@@ -64,12 +65,14 @@ so this side of the comparison is an honest experiment.
 Measured on an Apple M2 (8-core CPU, 10-core GPU, 24 GB), MLX 0.32.4, 17 Nov 2026.
 
 **Ladder** — duplicate IMPs/board for the row policy against the column policy, 10,000 fixed evaluation boards,
-± one standard error ([`results/ladder_2026-11-17.json`](results/ladder_2026-11-17.json); full 9×9 matrix via
-`bridgebid ladder`). The ported brl models reproduce their published order.
+± one standard error ([`results/ladder_2026-11-17.json`](results/ladder_2026-11-17.json); full 10×10 matrix via
+`bridgebid ladder`). The ported brl models reproduce their published order. The weighted random bot (measured
+20 Nov 2026) beats uniformly random calls by +18.40 ± 0.05 and, with no conventions, edges always-pass.
 
 | policy | vs pass | vs rule bot | vs brl scratch | vs brl SL | vs brl FSP | published vs WBridge5 |
 |---|---:|---:|---:|---:|---:|---:|
 | random legal calls | -13.51 ± 0.04 | -13.73 ± 0.05 | -22.73 ± 0.04 | -18.18 ± 0.05 | -20.35 ± 0.05 |  |
+| weighted random (hand-picked weights) | +0.28 ± 0.06 | -0.66 ± 0.07 | -3.08 ± 0.08 | -3.19 ± 0.07 | -4.81 ± 0.07 |  |
 | always pass | — | -3.25 ± 0.05 | -2.50 ± 0.07 | -4.02 ± 0.06 | -3.93 ± 0.06 |  |
 | rule bot (hand-written) | +3.25 ± 0.05 | — | -1.88 ± 0.07 | -2.92 ± 0.06 | -3.65 ± 0.07 |  |
 | **ES, 10 min** (ours) | +1.20 ± 0.03 | -1.96 ± 0.05 | -2.63 ± 0.07 | -3.60 ± 0.06 | -4.14 ± 0.06 |  |
@@ -142,6 +145,15 @@ uv run bridgebid eval runs/<run_dir>/ckpt/policy.safetensors   # ladder + system
 Ctrl-C saves a checkpoint, so the Mac can be handed back at any time. Config values can be overridden on the
 command line, e.g. `ppo.lr=3e-5 ppo.critic=shared`.
 
+The weighted random bot's weights are tuned by a small (1+λ)-ES against the rule bot on train deals
+(`--minutes` is turned into a fixed generation count, so the same seed gives the same JSON):
+
+```bash
+uv run python scripts/tune_weighted.py --minutes 1 --seed 0 --out runs/weighted_smoke.json   # smoke
+uv run python scripts/tune_weighted.py --minutes 60 --seed 0           # -> results/weighted_tuned.json
+uv run bridgebid ladder weighted weighted:results/weighted_tuned.json random pass rule --boards 10000
+```
+
 ## Tests
 
 ```bash
@@ -161,13 +173,13 @@ bridgebid/  constants, cards, scoring, config
   data/       download, convert (checks), sampler (GPU decode)
   env/        reference.py (readable spec), core.py (batched MLX), pgx_oracle.py (tests only)
   models/     actor_critic.py, io.py, brl.py (ported baselines)
-  policies/   base (pass/random/neural), rule_bot
+  policies/   base (pass/random/neural), rule_bot, weighted_random
   eval/       duplicate, ladder, diagnostics
   trainers/   ppo, es, common
   tracking/   run directories, JSONL, TensorBoard
   cli/        bridgebid command, terminal viewer
   ui/         HTML board viewer, localhost bidding server
-configs/  scripts/ (bench_mlx, make_fixtures, port_brl)  tests/  legacy/
+configs/  scripts/ (bench_mlx, make_fixtures, port_brl, tune_weighted)  tests/  legacy/
 ```
 
 ## Roadmap

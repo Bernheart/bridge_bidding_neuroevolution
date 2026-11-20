@@ -9,7 +9,7 @@ from bridgebid.data.sampler import DealBank
 from bridgebid.eval.duplicate import match
 from bridgebid.policies.base import Policy, load
 
-DEFAULT_LADDER = ["random", "pass", "rule", "brl:from-scratch-rl", "brl:sl", "brl:pretrained-rl",
+DEFAULT_LADDER = ["random", "weighted", "pass", "rule", "brl:from-scratch-rl", "brl:sl", "brl:pretrained-rl",
                   "brl:pretrained-rl-with-fsp"]
 QUICK_LADDER = ["pass", "rule", "brl:sl"]
 
