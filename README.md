@@ -66,13 +66,22 @@ Measured on an Apple M2 (8-core CPU, 10-core GPU, 24 GB), MLX 0.32.4, 17 Nov 202
 
 **Ladder** — duplicate IMPs/board for the row policy against the column policy, 10,000 fixed evaluation boards,
 ± one standard error ([`results/ladder_2026-11-17.json`](results/ladder_2026-11-17.json); full 10×10 matrix via
-`bridgebid ladder`). The ported brl models reproduce their published order. The weighted random bot (measured
-20 Nov 2026) beats uniformly random calls by +18.40 ± 0.05 and, with no conventions, edges always-pass.
+`bridgebid ladder`). The ported brl models reproduce their published order. The weighted random bots were measured
+20 Nov 2026 ([`results/ladder_weighted_2026-11-20.json`](results/ladder_weighted_2026-11-20.json)). With no
+conventions, the hand-picked weights beat uniformly random calls by +18.40 ± 0.05 and edge always-pass. Tuning
+against the rule bot alone ([`results/weighted_tuned_v1_rule.json`](results/weighted_tuned_v1_rule.json)) only
+beat the rule bot; head-to-head it tied the hand-picked weights (+0.04 ± 0.07). Tuning against a pool (brl FSP,
+brl SL, rule bot; [`results/weighted_tuned.json`](results/weighted_tuned.json), 370 generations) beats the
+hand-picked weights by +0.87 ± 0.07, the first tuned set by +0.65 ± 0.06, random by +22.80 ± 0.03, and improves
+against every opponent: twelve tuned numbers and a dice roll come within 1.8 IMPs/board of brl's PPO-from-scratch
+bot (5.2B training steps).
 
 | policy | vs pass | vs rule bot | vs brl scratch | vs brl SL | vs brl FSP | published vs WBridge5 |
 |---|---:|---:|---:|---:|---:|---:|
 | random legal calls | -13.51 ± 0.04 | -13.73 ± 0.05 | -22.73 ± 0.04 | -18.18 ± 0.05 | -20.35 ± 0.05 |  |
 | weighted random (hand-picked weights) | +0.28 ± 0.06 | -0.66 ± 0.07 | -3.08 ± 0.08 | -3.19 ± 0.07 | -4.81 ± 0.07 |  |
+| weighted random (ES-tuned vs rule bot only) | +0.66 ± 0.06 | +0.70 ± 0.07 | -2.42 ± 0.07 | -2.72 ± 0.07 | -4.08 ± 0.07 |  |
+| **weighted random (ES-tuned vs FSP + SL + rule, 42 min)** | +1.64 ± 0.05 | +0.55 ± 0.07 | -1.79 ± 0.07 | -2.28 ± 0.07 | -3.56 ± 0.07 |  |
 | always pass | — | -3.25 ± 0.05 | -2.50 ± 0.07 | -4.02 ± 0.06 | -3.93 ± 0.06 |  |
 | rule bot (hand-written) | +3.25 ± 0.05 | — | -1.88 ± 0.07 | -2.92 ± 0.06 | -3.65 ± 0.07 |  |
 | **ES, 10 min** (ours) | +1.20 ± 0.03 | -1.96 ± 0.05 | -2.63 ± 0.07 | -3.60 ± 0.06 | -4.14 ± 0.06 |  |

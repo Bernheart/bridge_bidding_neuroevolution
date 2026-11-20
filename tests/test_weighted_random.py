@@ -150,7 +150,8 @@ def test_tuning_smoke_is_reproducible(tmp_path):
     assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    args = ["--generations", "2", "--boards", "128", "--lam", "2", "--pool", "2000", "--seed", "5"]
+    args = ["--generations", "2", "--boards", "128", "--lam", "2", "--mu", "1", "--pool", "2000", "--seed", "5",
+            "--opponents", "rule", "pass"]
     mod.main([*args, "--out", str(tmp_path / "a.json")])
     mod.main([*args, "--out", str(tmp_path / "b.json")])
     assert (tmp_path / "a.json").read_text() == (tmp_path / "b.json").read_text()

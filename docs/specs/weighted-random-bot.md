@@ -50,7 +50,8 @@ P(call)        = softmax(score / T) over legal calls
 - Only legal calls: illegal calls get zero probability via the mask.
 - All calls natural; no conventions (no Stayman, transfers, strong 2♣, Polish Club).
 - Tuning script: simple ES (e.g. (1+λ) or a small CMA-like ES in NumPy) over the weights; fitness = duplicate
-  IMPs/board against `rule-bot` on fixed deals from the **train** split (never eval); explicit seeds, so a run
+  IMPs/board on fixed deals from the **train** split (never eval), averaged over a pool of opponents (default
+  brl FSP, brl SL and `rule-bot`; first `rule-bot` alone, changed after that run overfit it); explicit seeds, so a run
   with the same seed gives the same weights. `--minutes` budget; a ~1 minute smoke run. Longer runs only when
   the user says the Mac is free (it is shared with another project).
 - Python 3.12, MLX only (no torch/JAX in the bot or the script); `ruff check` clean.

@@ -1,0 +1,344 @@
+{
+  "weighted-random": {
+    "weighted-random": [
+      0.0,
+      0.0
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      -0.0439,
+      0.0659612944705971
+    ],
+    "weighted:results/weighted_tuned.json": [
+      -0.8665,
+      0.06579818170034417
+    ],
+    "random-legal": [
+      18.3966,
+      0.05038953020693333
+    ],
+    "always-pass": [
+      0.2814,
+      0.05800532618464082
+    ],
+    "rule-bot": [
+      -0.6641,
+      0.06726767138054726
+    ],
+    "brl:from-scratch-rl": [
+      -3.0841,
+      0.07581159184943866
+    ],
+    "brl:sl": [
+      -3.1887,
+      0.07354393314210358
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      -4.8113,
+      0.07152804245249347
+    ]
+  },
+  "weighted:results/weighted_tuned_v1_rule.json": {
+    "weighted-random": [
+      0.0439,
+      0.0659612944705971
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      0.0,
+      0.0
+    ],
+    "weighted:results/weighted_tuned.json": [
+      -0.6532,
+      0.0604238204668323
+    ],
+    "random-legal": [
+      21.0558,
+      0.04238429283151818
+    ],
+    "always-pass": [
+      0.6639,
+      0.06023318423135427
+    ],
+    "rule-bot": [
+      0.6976,
+      0.06766072140704776
+    ],
+    "brl:from-scratch-rl": [
+      -2.4155,
+      0.07344647992614318
+    ],
+    "brl:sl": [
+      -2.7248,
+      0.06883574893929173
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      -4.075,
+      0.06825337612408072
+    ]
+  },
+  "weighted:results/weighted_tuned.json": {
+    "weighted-random": [
+      0.8665,
+      0.06579818170034417
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      0.6532,
+      0.0604238204668323
+    ],
+    "weighted:results/weighted_tuned.json": [
+      0.0,
+      0.0
+    ],
+    "random-legal": [
+      22.803,
+      0.026339485128750804
+    ],
+    "always-pass": [
+      1.6353,
+      0.054731060102047986
+    ],
+    "rule-bot": [
+      0.5475,
+      0.06523327305134473
+    ],
+    "brl:from-scratch-rl": [
+      -1.7936,
+      0.0725427194735272
+    ],
+    "brl:sl": [
+      -2.2829,
+      0.07018589149491866
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      -3.5611,
+      0.0675036469624814
+    ]
+  },
+  "random-legal": {
+    "weighted-random": [
+      -18.3966,
+      0.05038953020693333
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      -21.0558,
+      0.04238429283151818
+    ],
+    "weighted:results/weighted_tuned.json": [
+      -22.803,
+      0.026339485128750804
+    ],
+    "random-legal": [
+      0.0,
+      0.0
+    ],
+    "always-pass": [
+      -13.5111,
+      0.03618644255605248
+    ],
+    "rule-bot": [
+      -13.7313,
+      0.05427452996996239
+    ],
+    "brl:from-scratch-rl": [
+      -22.7276,
+      0.04073310376799511
+    ],
+    "brl:sl": [
+      -18.176,
+      0.05214090781168605
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      -20.3546,
+      0.04647711153018891
+    ]
+  },
+  "always-pass": {
+    "weighted-random": [
+      -0.2814,
+      0.05800532618464082
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      -0.6639,
+      0.06023318423135427
+    ],
+    "weighted:results/weighted_tuned.json": [
+      -1.6353,
+      0.054731060102047986
+    ],
+    "random-legal": [
+      13.5111,
+      0.03618644255605248
+    ],
+    "always-pass": [
+      0.0,
+      0.0
+    ],
+    "rule-bot": [
+      -3.2518,
+      0.04503268224575375
+    ],
+    "brl:from-scratch-rl": [
+      -2.5009,
+      0.06876010990589985
+    ],
+    "brl:sl": [
+      -4.0233,
+      0.06483684209312836
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      -3.934,
+      0.06289562771766094
+    ]
+  },
+  "rule-bot": {
+    "weighted-random": [
+      0.6641,
+      0.06726767138054726
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      -0.6976,
+      0.06766072140704776
+    ],
+    "weighted:results/weighted_tuned.json": [
+      -0.5475,
+      0.06523327305134473
+    ],
+    "random-legal": [
+      13.7313,
+      0.05427452996996239
+    ],
+    "always-pass": [
+      3.2518,
+      0.04503268224575375
+    ],
+    "rule-bot": [
+      0.0,
+      0.0
+    ],
+    "brl:from-scratch-rl": [
+      -1.8769,
+      0.07017255202503163
+    ],
+    "brl:sl": [
+      -2.9184,
+      0.06418462518867787
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      -3.6501,
+      0.0653415178152072
+    ]
+  },
+  "brl:from-scratch-rl": {
+    "weighted-random": [
+      3.0841,
+      0.07581159184943866
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      2.4155,
+      0.07344647992614318
+    ],
+    "weighted:results/weighted_tuned.json": [
+      1.7936,
+      0.0725427194735272
+    ],
+    "random-legal": [
+      22.7276,
+      0.04073310376799511
+    ],
+    "always-pass": [
+      2.5009,
+      0.06876010990589985
+    ],
+    "rule-bot": [
+      1.8769,
+      0.07017255202503163
+    ],
+    "brl:from-scratch-rl": [
+      0.0,
+      0.0
+    ],
+    "brl:sl": [
+      -0.2143,
+      0.06764950255929197
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      -1.5378,
+      0.06999962221834538
+    ]
+  },
+  "brl:sl": {
+    "weighted-random": [
+      3.1887,
+      0.07354393314210358
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      2.7248,
+      0.06883574893929173
+    ],
+    "weighted:results/weighted_tuned.json": [
+      2.2829,
+      0.07018589149491866
+    ],
+    "random-legal": [
+      18.176,
+      0.05214090781168605
+    ],
+    "always-pass": [
+      4.0233,
+      0.06483684209312836
+    ],
+    "rule-bot": [
+      2.9184,
+      0.06418462518867787
+    ],
+    "brl:from-scratch-rl": [
+      0.2143,
+      0.06764950255929197
+    ],
+    "brl:sl": [
+      0.0,
+      0.0
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      -1.3469,
+      0.061474661059620656
+    ]
+  },
+  "brl:pretrained-rl-with-fsp": {
+    "weighted-random": [
+      4.8113,
+      0.07152804245249347
+    ],
+    "weighted:results/weighted_tuned_v1_rule.json": [
+      4.075,
+      0.06825337612408072
+    ],
+    "weighted:results/weighted_tuned.json": [
+      3.5611,
+      0.0675036469624814
+    ],
+    "random-legal": [
+      20.3546,
+      0.04647711153018891
+    ],
+    "always-pass": [
+      3.934,
+      0.06289562771766094
+    ],
+    "rule-bot": [
+      3.6501,
+      0.0653415178152072
+    ],
+    "brl:from-scratch-rl": [
+      1.5378,
+      0.06999962221834538
+    ],
+    "brl:sl": [
+      1.3469,
+      0.061474661059620656
+    ],
+    "brl:pretrained-rl-with-fsp": [
+      0.0,
+      0.0
+    ]
+  }
+}
